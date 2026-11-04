@@ -1,0 +1,4323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fab's Jezz</title>
+<meta name="description" content="Fab's Jezz — a wall-drawing ball-capture game. Works fully offline.">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fab's Jezz">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230d1117'/><circle cx='10' cy='16' r='4' fill='%2300d4aa'/><circle cx='22' cy='10' r='3' fill='%23ff6b6b'/><line x1='16' y1='4' x2='16' y2='28' stroke='%2300d4aa' stroke-width='1.5'/><line x1='4' y1='16' x2='28' y2='16' stroke='%2300d4aa' stroke-width='1.5'/></svg>">
+<style>
+/* ============================================================
+   1. CSS VARIABLES & THEMES
+   ============================================================ */
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel2: #1c2128;
+  --panel3: #252c37;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --muted: #484f58;
+  --accent: #00d4aa;
+  --accent2: #ff6b6b;
+  --accent3: #ffd93d;
+  --ball1: #ff6b6b;
+  --ball2: #00d4aa;
+  --wall: #00d4aa;
+  --wall-h: #00d4aa;
+  --wall-v: #ff9f43;
+  --captured: rgba(0,212,170,0.15);
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --font: 'Georgia', 'Times New Roman', serif;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --transition: 0.22s ease;
+}
+
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --panel: #ffffff;
+  --panel2: #f0f4f8;
+  --panel3: #e2e8f0;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1a202c;
+  --text2: #4a5568;
+  --muted: #a0aec0;
+  --accent: #0099cc;
+  --accent2: #e53e3e;
+  --accent3: #d69e2e;
+  --wall: #0099cc;
+  --wall-h: #0099cc;
+  --wall-v: #dd6b20;
+  --captured: rgba(0,153,204,0.12);
+}
+
+[data-theme="sunset"] {
+  --bg: #1a0a2e;
+  --panel: #2d1b4e;
+  --panel2: #3d2560;
+  --panel3: #4e3070;
+  --border: rgba(255,200,150,0.12);
+  --border2: rgba(255,200,150,0.2);
+  --text: #ffecd2;
+  --text2: #ddb892;
+  --muted: #9c7c5c;
+  --accent: #ff9a56;
+  --accent2: #ff4d6d;
+  --accent3: #ffd166;
+  --wall: #ff9a56;
+  --wall-h: #ff9a56;
+  --wall-v: #ff4d6d;
+  --captured: rgba(255,154,86,0.15);
+}
+
+[data-theme="forest"] {
+  --bg: #0a1a0d;
+  --panel: #122018;
+  --panel2: #1a2e20;
+  --panel3: #243d2a;
+  --border: rgba(150,255,180,0.1);
+  --border2: rgba(150,255,180,0.18);
+  --text: #d8f3dc;
+  --text2: #95d5a2;
+  --muted: #5a8a63;
+  --accent: #52b788;
+  --accent2: #ff6b6b;
+  --accent3: #ffd93d;
+  --wall: #52b788;
+  --wall-h: #52b788;
+  --wall-v: #95d5a2;
+  --captured: rgba(82,183,136,0.15);
+}
+
+[data-theme="ocean"] {
+  --bg: #020c1b;
+  --panel: #0a1929;
+  --panel2: #112240;
+  --panel3: #1a3355;
+  --border: rgba(100,200,255,0.1);
+  --border2: rgba(100,200,255,0.18);
+  --text: #ccd6f6;
+  --text2: #8892b0;
+  --muted: #495670;
+  --accent: #64ffda;
+  --accent2: #ff6b9d;
+  --accent3: #ffd93d;
+  --wall: #64ffda;
+  --wall-h: #64ffda;
+  --wall-v: #ff6b9d;
+  --captured: rgba(100,255,218,0.12);
+}
+
+/* ============================================================
+   2. RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  height: 100%;
+  height: 100dvh;
+}
+body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+  transition: background var(--transition), color var(--transition);
+  user-select: none;
+  -webkit-user-select: none;
+}
+button { cursor: pointer; font-family: inherit; font-size: inherit; border: none; background: none; }
+.hidden { display: none !important; }
+
+/* ============================================================
+   3. LAYOUT
+   ============================================================ */
+#app {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ============================================================
+   4. TOPBAR
+   ============================================================ */
+#topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  height: 52px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+  /* Right side reserved for top-toggles (≈130px) */
+  padding-right: 150px;
+}
+@media (max-width: 480px) {
+  #topbar { padding-right: 130px; }
+}
+#topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+#topbar .brand span { color: var(--text2); font-size: 13px; font-family: var(--font-ui); font-weight: normal; }
+#topbar .actions { display: flex; align-items: center; gap: 8px; }
+
+/* Pause button inside HUD */
+.btn-pause-hud {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.btn-pause-hud:hover {
+  border-color: var(--accent3);
+  color: var(--accent3);
+  background: rgba(255,217,61,0.1);
+  transform: scale(1.08);
+}
+
+/* ============================================================
+   5. BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  transition: all var(--transition);
+  cursor: pointer;
+}
+.btn:hover { background: var(--panel3); border-color: var(--accent); color: var(--accent); }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0d1117;
+  font-weight: 700;
+}
+.btn.primary:hover { filter: brightness(1.1); }
+.btn.danger { border-color: var(--accent2); color: var(--accent2); }
+.btn.danger:hover { background: rgba(255,107,107,0.12); }
+.btn.sm { padding: 5px 10px; font-size: 12px; }
+.btn.icon { padding: 7px; border-radius: 8px; }
+.btn.active { background: rgba(0,212,170,0.12); border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   6. SCREENS
+   ============================================================ */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--bg);
+  z-index: 50;
+  padding: 60px 16px 16px; /* top pad leaves room for toggles */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.screen.hidden { display: none !important; }
+/* Center vertically if content fits */
+@media (min-height: 600px) {
+  #welcomeScreen { justify-content: center; padding-top: 60px; }
+}
+
+/* ============================================================
+   7. WELCOME SCREEN
+   ============================================================ */
+#welcomeScreen {
+  gap: 0;
+}
+.game-preview {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 16px;
+  flex-shrink: 0;
+}
+.game-preview-svg {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.4));
+}
+
+.welcome-hero {
+  text-align: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+.welcome-hero h1 {
+  font-family: var(--font);
+  font-size: clamp(30px, 10vw, 72px);
+  color: var(--accent);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-bottom: 6px;
+  text-shadow: 0 0 40px rgba(0,212,170,0.3);
+}
+.welcome-hero .subtitle {
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.welcome-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-shrink: 0;
+}
+@media (max-width: 360px) {
+  .welcome-card { padding: 14px; gap: 10px; }
+  .mode-btn { padding: 9px 6px; }
+}
+.welcome-card h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+@media (max-width: 380px) { .mode-grid { grid-template-columns: repeat(2, 1fr); } }
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background: var(--panel2);
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.mode-btn .mode-icon { font-size: 22px; line-height: 1; }
+.mode-btn .mode-name { font-weight: 700; font-size: 13px; color: var(--text); }
+.mode-btn .mode-desc { font-size: 10px; color: var(--text2); text-align: center; }
+.mode-btn:hover, .mode-btn.selected {
+  border-color: var(--accent);
+  background: rgba(0,212,170,0.08);
+  color: var(--accent);
+}
+.mode-btn.selected .mode-name { color: var(--accent); }
+.welcome-start {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.welcome-start .btn {
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 15px;
+}
+.welcome-footer {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* how to play */
+.howto-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.howto-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.4;
+}
+.howto-step .step-num {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #0d1117;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ============================================================
+   8. GAME AREA
+   ============================================================ */
+#gameArea {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  /* height is determined by flex — fills whatever the topbar leaves */
+}
+#gameArea.hidden { display: none !important; }
+
+#hud {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.hud-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 60px;
+}
+.hud-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hud-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.hud-value.accent { color: var(--accent); }
+.hud-sep { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+.hud-spacer { flex: 1; }
+
+/* lives display */
+.lives-display { display: flex; gap: 4px; align-items: center; }
+.life-icon { font-size: 16px; transition: transform 0.15s; }
+.life-icon.lost { opacity: 0.2; transform: scale(0.8); }
+
+/* progress bar */
+.progress-wrap {
+  flex: 0 0 auto;
+  height: 4px;
+  background: var(--panel3);
+  position: relative;
+  overflow: hidden;
+}
+#progressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent3));
+  width: 0%;
+  transition: width 0.3s ease;
+}
+#progressLabel {
+  position: absolute;
+  right: 8px;
+  top: -18px;
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* canvas wrapper — fills all remaining space after HUD */
+#canvasWrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  min-width: 0;
+  position: relative;
+  background: var(--bg);
+  overflow: hidden;
+  /* No padding here — footer clearance is handled in resize() via JS */
+}
+#gameCanvas {
+  /* CSS display size is set by JS to fit the wrap while keeping 8:5 ratio.
+     The internal resolution (canvas.width/height) stays 960×600.
+     ctx.setTransform handles the mapping — no CSS transform needed. */
+  display: block;
+  cursor: crosshair;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  touch-action: none;
+  /* explicit size set by JS; prevent CSS from overriding */
+  flex-shrink: 0;
+}
+
+/* direction indicator */
+#dirIndicator {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  z-index: 10;
+  pointer-events: none;
+}
+#dirIndicator .dir-arrow {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+}
+#dirIndicator.wall-h .dir-arrow { color: var(--wall-h); }
+#dirIndicator.wall-v .dir-arrow { color: var(--wall-v); }
+
+/* ============================================================
+   9. OVERLAYS
+   ============================================================ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  animation: fadeIn 0.3s ease;
+}
+.overlay.hidden { display: none !important; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.overlay-card {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: var(--shadow);
+  animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes slideUp {
+  from { transform: translateY(30px) scale(0.95); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.overlay-card h2 {
+  font-family: var(--font);
+  font-size: 28px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.overlay-card .sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+.overlay-card .overlay-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.overlay-card .overlay-btns .btn { justify-content: center; padding: 11px; }
+
+/* level splash */
+.level-splash-img {
+  width: 240px;
+  height: 160px;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 auto 16px;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 30px rgba(0,212,170,0.3);
+}
+.level-splash-img canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* confetti canvas */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;  /* above everything */
+}
+
+/* pause overlay */
+.pause-blur-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  filter: blur(8px) brightness(0.4);
+  pointer-events: none;
+}
+.pause-card {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.pause-icon {
+  font-size: 40px;
+  line-height: 1;
+  margin-bottom: 8px;
+  animation: pausePulse 2s ease infinite;
+}
+@keyframes pausePulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.9); }
+}
+#pauseOverlay .overlay-card h2 { color: var(--accent3); }
+
+/* gameover overlay */
+#gameoverOverlay .overlay-card h2 { color: var(--accent2); }
+
+/* stats in overlays */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+.stat-item {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+.stat-item .sk { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.stat-item .sv { font-size: 20px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.stat-item.accent .sv { color: var(--accent); }
+
+/* new record badge */
+.new-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,217,61,0.15);
+  border: 1px solid var(--accent3);
+  color: var(--accent3);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 8px auto;
+}
+
+/* ============================================================
+   10. SCORES SCREEN
+   ============================================================ */
+#scoresScreen {
+  gap: 20px;
+  padding: 20px;
+}
+#scoresScreen h1 {
+  font-family: var(--font);
+  font-size: 28px;
+  color: var(--accent);
+}
+.scores-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--panel2);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.scores-tab {
+  flex: 1;
+  padding: 7px 16px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+}
+.scores-tab.active {
+  background: var(--accent);
+  color: #0d1117;
+}
+.scores-table {
+  width: 100%;
+  max-width: 480px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.scores-table-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 80px;
+  padding: 10px 16px;
+  background: var(--panel2);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.score-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 80px 80px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  font-size: 13px;
+  transition: background var(--transition);
+}
+.score-row:last-child { border-bottom: none; }
+.score-row:hover { background: var(--panel2); }
+.score-row .rank { color: var(--text2); font-weight: 700; }
+.score-row .rank.gold { color: var(--accent3); }
+.score-row .rank.silver { color: #c0c0c0; }
+.score-row .rank.bronze { color: #cd7f32; }
+.score-row .level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--panel3);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.score-row .score-val { font-weight: 700; color: var(--accent); text-align: right; }
+.score-row .pct-val { color: var(--text2); text-align: right; }
+.no-scores {
+  padding: 32px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ============================================================
+   11. SETTINGS
+   ============================================================ */
+#settingsOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(10px);
+  z-index: 500;
+  animation: fadeIn 0.2s ease;
+}
+#settingsOverlay.hidden { display: none !important; }
+.settings-card {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 320px;
+  max-width: 95vw;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideUp 0.3s ease;
+}
+.settings-card h2 {
+  font-family: var(--font);
+  font-size: 20px;
+  color: var(--accent);
+}
+.settings-section h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.theme-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+.theme-dot:hover, .theme-dot.active { border-color: var(--text); transform: scale(1.1); }
+.lang-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lang-btn {
+  padding: 5px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--panel2);
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.lang-btn:hover, .lang-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,212,170,0.08);
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text2);
+}
+.switch-row:last-child { border-bottom: none; }
+.toggle {
+  width: 40px; height: 22px;
+  background: var(--panel3);
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--text2);
+  transition: all 0.2s;
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle.on::after { left: 20px; background: #fff; }
+
+/* ============================================================
+   12. WALL PREVIEW CURSOR
+   ============================================================ */
+#wallCursor {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0.6;
+}
+
+/* ============================================================
+   13. TOAST NOTIFICATIONS
+   ============================================================ */
+#toastContainer {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--panel);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+  animation: toastIn 0.25s ease, toastOut 0.3s ease 1.7s forwards;
+  text-align: center;
+  white-space: nowrap;
+}
+.toast.success { border-color: var(--accent); color: var(--accent); }
+.toast.error { border-color: var(--accent2); color: var(--accent2); }
+.toast.warn { border-color: var(--accent3); color: var(--accent3); }
+@keyframes toastIn { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+@keyframes toastOut { to { opacity:0; transform: translateY(-8px); } }
+
+/* ============================================================
+   14. LANDSCAPE IMAGE PREVIEW MODAL
+   ============================================================ */
+.reveal-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================
+   15. ANIMATIONS & EFFECTS
+   ============================================================ */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+@keyframes starBurst {
+  0% { opacity: 1; transform: scale(0) rotate(0deg); }
+  60% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+  100% { opacity: 0; transform: scale(1.5) rotate(360deg); }
+}
+.shake { animation: shake 0.4s ease; }
+.pop { animation: pop 0.3s ease; }
+
+/* ============================================================
+   16. RESPONSIVE
+   ============================================================ */
+.timer-warning #hudTimer {
+  color: var(--accent2) !important;
+  animation: timerPulse 0.7s ease infinite alternate;
+}
+@keyframes timerPulse {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0.5; transform: scale(1.08); }
+}
+
+/* ── Mobile ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  #topbar { height: 44px; padding: 0 10px; }
+  #topbar .brand { font-size: 15px; }
+  #topbar .brand span { display: none; }
+  .hud-block { min-width: 44px; }
+  .hud-value { font-size: 14px; }
+  .hud-label { font-size: 8px; }
+  #hud { gap: 8px; padding: 6px 10px; }
+  .overlay-card { padding: 18px 14px; }
+  .overlay-card h2 { font-size: 20px; }
+  .stat-grid { grid-template-columns: 1fr 1fr; gap: 7px; }
+  /* Hide mode block on tiny phones */
+  #hud .hud-block:last-child { display: none; }
+  #hud .hud-sep:last-of-type { display: none; }
+  .level-splash-img { width: 200px; height: 133px; }
+  #dirIndicator { bottom: 8px; right: 8px; font-size: 11px; padding: 6px 10px; }
+}
+@media (max-width: 360px) {
+  .hud-value { font-size: 13px; }
+  .lives-display { gap: 2px; }
+  .life-icon { font-size: 13px; }
+}
+
+/* ── Tablet/Desktop ──────────────────────────────────────── */
+@media (min-width: 700px) {
+  #gameArea { flex-direction: row; }
+  #gameArea #hud {
+    flex-direction: column;
+    width: 130px;
+    flex: 0 0 130px;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    align-items: flex-start;
+    padding: 16px 12px;
+    height: auto;
+    flex-wrap: nowrap;
+  }
+  .hud-sep { width: 100%; height: 1px; }
+  .progress-wrap { display: none; }
+  /* Restore the mode block on desktop */
+  #hud .hud-block:last-child { display: flex; }
+  #hud .hud-sep:last-of-type { display: block; }
+}
+
+
+
+/* ============================================================
+   TOP TOGGLES — Sudoku style, fixed top-right
+   ============================================================ */
+.top-toggles {
+  position: fixed;
+  top: 8px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  z-index: 1000;
+  align-items: center;
+}
+.toggle-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  transition: transform 0.2s, background var(--transition);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.toggle-btn:hover { transform: scale(1.1); background: var(--panel2); }
+.toggle-btn.muted { opacity: 0.5; }
+
+.lang-select {
+  height: 42px;
+  border-radius: 21px;
+  border: 1.5px solid var(--border2);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0 28px 0 12px;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: transform 0.2s, background var(--transition);
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.lang-select:hover { transform: scale(1.04); }
+
+/* download button now uses .btn.sm */
+
+/* Site footer — Sudoku style */
+.site-footer {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  width: max-content;
+  max-width: min(100%, 98vw);
+  margin: 12px auto 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: rgba(9, 13, 22, 0.82);
+  color: rgba(245, 247, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+.site-footer a { color: #a5d4ff; text-decoration: none; font-weight: 700; }
+.site-footer a:hover { text-decoration: underline; }
+.footer-sep { color: rgba(245, 247, 255, 0.35); }
+.footer-support {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #f5d987 !important;
+  text-decoration: none !important;
+}
+.footer-support strong { color: #ffe68d; font-weight: 800; }
+.footer-strike {
+  color: #e7c0a0;
+  text-decoration-line: line-through;
+  text-decoration-color: #d76a7d;
+  text-decoration-thickness: 0.14em;
+}
+.footer-cup {
+  width: 1.05em; height: 1.05em;
+  color: #d9b963;
+  flex: 0 0 auto;
+  stroke-width: 1.9;
+}
+
+/* Footer: fixed at bottom, always visible on every screen */
+#siteFooter {
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  margin: 0;
+  /* Slightly more transparent during gameplay so it's less distracting */
+  opacity: 0.75;
+  transition: opacity 0.2s;
+  pointer-events: auto;
+}
+#siteFooter:hover { opacity: 1; }
+
+/* On the welcome screen make it fully opaque */
+body.at-welcome #siteFooter { opacity: 1; }
+@media (max-width: 480px) {
+  .top-toggles { top: 6px; right: 8px; gap: 7px; }
+  .toggle-btn { width: 36px; height: 36px; font-size: 16px; }
+  .lang-select { height: 36px; font-size: 12px; }
+  .site-footer { font-size: 0.76rem; padding: 7px 11px; }
+}
+</style>
+</head>
+<body>
+<!-- TOP TOGGLES — fixed top-right, always visible -->
+<div class="top-toggles" id="topToggles">
+  <button class="toggle-btn" id="soundToggleBtn" onclick="UI.toggleSound()" title="Sound">🔊</button>
+  <button class="toggle-btn" id="themeToggleBtn" onclick="UI.cycleTheme()" title="Theme" data-i18n-tooltip="ttTheme">🎨</button>
+  <select id="langSelect" class="lang-select" onchange="I18n.setLang(this.value)">
+    <option value="en">🇬🇧 EN</option>
+    <option value="fr">🇫🇷 FR</option>
+  </select>
+</div>
+
+<div id="app">
+  <!-- TOPBAR -->
+  <header id="topbar">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="5" fill="currentColor" opacity="0.1"/>
+        <circle cx="7" cy="12" r="3" fill="var(--accent)"/>
+        <circle cx="17" cy="8" r="2.5" fill="var(--accent2)"/>
+        <line x1="12" y1="3" x2="12" y2="21" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2 2"/>
+        <line x1="3" y1="12" x2="21" y2="12" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2 2"/>
+      </svg>
+      Fab's Jezz
+    </div>
+    <div class="actions"></div>
+  </header>
+
+  <!-- SCREENS -->
+  <!-- WELCOME SCREEN -->
+  <div id="welcomeScreen" class="screen">
+    <div class="welcome-hero">
+      <h1>Fab's Jezz</h1>
+    </div>
+
+    <!-- Animated game preview illustration -->
+    <div class="game-preview" aria-hidden="true">
+      <svg class="game-preview-svg" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background -->
+        <rect width="200" height="120" rx="8" fill="var(--panel2)" stroke="var(--border2)" stroke-width="1"/>
+
+        <!-- Captured zone top-left -->
+        <rect x="1" y="1" width="80" height="45" rx="2" fill="var(--captured)" opacity="0.8"/>
+        <!-- Captured zone top-right -->
+        <rect x="120" y="1" width="79" height="45" rx="2" fill="var(--captured)" opacity="0.6"/>
+
+        <!-- Landscape peek through captured zones -->
+        <!-- Sky gradient in top-left zone -->
+        <defs>
+          <linearGradient id="prevSky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2d1b4e"/>
+            <stop offset="100%" stop-color="#c9571a"/>
+          </linearGradient>
+          <linearGradient id="prevSky2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0a1929"/>
+            <stop offset="100%" stop-color="#1565c0"/>
+          </linearGradient>
+          <clipPath id="clipTL"><rect x="1" y="1" width="80" height="45" rx="2"/></clipPath>
+          <clipPath id="clipTR"><rect x="120" y="1" width="79" height="45" rx="2"/></clipPath>
+        </defs>
+        <!-- Landscape in TL zone -->
+        <g clip-path="url(#clipTL)">
+          <rect x="1" y="1" width="80" height="45" fill="url(#prevSky)"/>
+          <circle cx="60" cy="14" r="7" fill="#ffd166" opacity="0.9"/>
+          <polygon points="1,46 20,22 35,38 50,18 70,34 81,25 81,46" fill="#1a0a2e" opacity="0.9"/>
+        </g>
+        <!-- Landscape in TR zone -->
+        <g clip-path="url(#clipTR)">
+          <rect x="120" y="1" width="79" height="45" fill="url(#prevSky2)"/>
+          <polygon points="120,46 140,28 158,38 175,18 199,30 199,46" fill="#1a237e" opacity="0.9"/>
+          <polygon points="168,18 175,8 182,18" fill="#e3f2fd" opacity="0.8"/>
+        </g>
+
+        <!-- Horizontal wall -->
+        <rect x="1" y="46" width="199" height="4" fill="var(--wall-h)" rx="1" opacity="0.9"/>
+        <!-- Vertical wall (partial, being drawn) -->
+        <rect x="119" y="1" width="4" height="45" fill="var(--wall-h)" rx="1" opacity="0.9"/>
+        <!-- Wall glow -->
+        <rect x="119" y="1" width="4" height="45" fill="var(--wall-h)" rx="1" opacity="0.3" filter="blur(2px)"/>
+
+        <!-- Borders -->
+        <rect x="1" y="1" width="4" height="118" fill="var(--accent)" opacity="0.5"/>
+        <rect x="195" y="1" width="4" height="118" fill="var(--accent)" opacity="0.5"/>
+        <rect x="1" y="1" width="198" height="4" fill="var(--accent)" opacity="0.5"/>
+        <rect x="1" y="115" width="198" height="4" fill="var(--accent)" opacity="0.5"/>
+
+        <!-- Ball 1 — tennis (animated bounce path) -->
+        <circle r="6" fill="#ccee00" stroke="#fff" stroke-width="0.5" opacity="0.95">
+          <animateMotion dur="2.8s" repeatCount="indefinite" rotate="auto"
+            path="M 30,75 L 160,90 L 160,60 L 30,75"/>
+          <animate attributeName="r" values="6;6.3;6;5.7;6" dur="0.4s" repeatCount="indefinite"/>
+        </circle>
+        <!-- Tennis seams -->
+        <g opacity="0.9">
+          <ellipse rx="4" ry="1.5" fill="none" stroke="white" stroke-width="0.6" opacity="0.7">
+            <animateMotion dur="2.8s" repeatCount="indefinite"
+              path="M 30,75 L 160,90 L 160,60 L 30,75"/>
+            <animateTransform attributeName="transform" type="rotate"
+              values="0;360" dur="1.5s" repeatCount="indefinite"/>
+          </ellipse>
+        </g>
+
+        <!-- Ball 2 — basketball (orange) -->
+        <circle r="6" fill="#e06010" stroke="#1a0a00" stroke-width="0.5" opacity="0.95">
+          <animateMotion dur="2.1s" repeatCount="indefinite"
+            path="M 150,80 L 40,95 L 40,65 L 150,80"/>
+        </circle>
+        <line x1="-6" y1="0" x2="6" y2="0" stroke="#1a0a00" stroke-width="0.7" opacity="0.8">
+          <animateMotion dur="2.1s" repeatCount="indefinite"
+            path="M 150,80 L 40,95 L 40,65 L 150,80"/>
+        </line>
+
+        <!-- Ball 3 — beach ball (small, bottom zone) -->
+        <circle r="5" opacity="0.9">
+          <animate attributeName="fill" values="#ff4499;#ffff00;#44aaff" dur="1s" repeatCount="indefinite"/>
+          <animateMotion dur="3.4s" repeatCount="indefinite"
+            path="M 100,95 L 170,105 L 170,70 L 100,95"/>
+        </circle>
+
+        <!-- Capture progress bar -->
+        <rect x="5" y="109" width="190" height="3" rx="1.5" fill="var(--panel3)"/>
+        <rect x="5" y="109" width="95" height="3" rx="1.5" fill="var(--accent)">
+          <animate attributeName="width" values="60;95;95" dur="3s" begin="1s" fill="freeze"/>
+        </rect>
+        <!-- Progress label -->
+        <text x="103" y="112" font-size="3.5" fill="var(--accent)" font-family="monospace" opacity="0.8">47%</text>
+
+        <!-- Click hint ripple -->
+        <circle cx="119" cy="85" r="4" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0">
+          <animate attributeName="r" values="2;12" dur="1.5s" begin="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.8;0" dur="1.5s" begin="2s" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+    </div>
+    <div class="welcome-card">
+      <div>
+        <h2 data-i18n="selectMode">Select Mode</h2>
+        <div class="mode-grid" id="modeGrid">
+          <button class="mode-btn" data-mode="zen" onclick="UI.selectMode('zen')">
+            <span class="mode-icon">🧘</span>
+            <span class="mode-name" data-i18n="zen">Zen</span>
+            <span class="mode-desc" data-i18n="zenDesc">no timer · no death</span>
+          </button>
+          <button class="mode-btn selected" data-mode="easy" onclick="UI.selectMode('easy')">
+            <span class="mode-icon">🌿</span>
+            <span class="mode-name" data-i18n="easy">Easy</span>
+            <span class="mode-desc" data-i18n="easyDesc">2 balls · slow</span>
+          </button>
+          <button class="mode-btn" data-mode="medium" onclick="UI.selectMode('medium')">
+            <span class="mode-icon">⚡</span>
+            <span class="mode-name" data-i18n="medium">Medium</span>
+            <span class="mode-desc" data-i18n="mediumDesc">3 balls · normal</span>
+          </button>
+          <button class="mode-btn" data-mode="hard" onclick="UI.selectMode('hard')">
+            <span class="mode-icon">🔥</span>
+            <span class="mode-name" data-i18n="hard">Hard</span>
+            <span class="mode-desc" data-i18n="hardDesc">5 balls · fast</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="howto-steps" id="howtoSteps">
+        <h2 data-i18n="howToPlay">How To Play</h2>
+        <div class="howto-step">
+          <span class="step-num">1</span>
+          <span data-i18n="howto1">Click to start drawing a wall (H or V)</span>
+        </div>
+        <div class="howto-step">
+          <span class="step-num">2</span>
+          <span data-i18n="howto2">Right-click to switch wall direction before drawing</span>
+        </div>
+        <div class="howto-step">
+          <span class="step-num">3</span>
+          <span data-i18n="howto3">Capture 75% of the field to advance</span>
+        </div>
+        <div class="howto-step">
+          <span class="step-num">4</span>
+          <span data-i18n="howto4">Don't let a ball touch your wall while drawing!</span>
+        </div>
+      </div>
+
+      <div class="welcome-start">
+        <button class="btn primary" onclick="Game.start()" data-i18n="playBtn">▶ Play</button>
+        <div class="welcome-footer">
+          <button class="btn sm" onclick="UI.showScores()" data-i18n="scores">🏆 Scores</button>
+          <button class="btn sm" id="btnDownload" onclick="UI.downloadHtml()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
+              <path d="M12 3v13"/><path d="m7.5 11.5 4.5 4.5 4.5-4.5"/><path d="M3 19h18"/>
+            </svg>
+            <span data-i18n="downloadHtml">Download HTML</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- SCORES SCREEN -->
+  <div id="scoresScreen" class="screen hidden">
+    <h1 data-i18n="highScores">High Scores</h1>
+    <div class="scores-tabs">
+      <div class="scores-tab" data-mode="zen" onclick="UI.scoresTab('zen')" data-i18n="zen">Zen</div>
+      <div class="scores-tab active" data-mode="easy" onclick="UI.scoresTab('easy')" data-i18n="easy">Easy</div>
+      <div class="scores-tab" data-mode="medium" onclick="UI.scoresTab('medium')" data-i18n="medium">Medium</div>
+      <div class="scores-tab" data-mode="hard" onclick="UI.scoresTab('hard')" data-i18n="hard">Hard</div>
+    </div>
+    <div class="scores-table">
+      <div class="scores-table-header">
+        <div>#</div>
+        <div data-i18n="thLevel">Level</div>
+        <div data-i18n="thScore">Score</div>
+        <div data-i18n="thCapture">%</div>
+      </div>
+      <div id="scoresList"></div>
+    </div>
+    <button class="btn" id="scoresBackBtn" onclick="UI.backFromScores()" data-i18n="back">← Back</button>
+    <div style="height:16px;flex-shrink:0;"></div>
+  </div>
+
+  <!-- GAME AREA -->
+  <div id="gameArea" class="hidden">
+    <!-- HUD -->
+    <div id="hud">
+      <div class="hud-block">
+        <div class="hud-label" data-i18n="level">Level</div>
+        <div class="hud-value accent" id="hudLevel">1</div>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-block">
+        <div class="hud-label" data-i18n="score">Score</div>
+        <div class="hud-value" id="hudScore">0</div>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-block" style="align-items:center;">
+        <div class="hud-label" data-i18n="captured">Captured</div>
+        <div style="position:relative; width:52px; height:52px; flex-shrink:0;">
+          <canvas id="pieCanvas" width="52" height="52"></canvas>
+          <div id="hudCapture" style="position:absolute;inset:0;display:flex;align-items:center;
+               justify-content:center;font-size:10px;font-weight:700;color:var(--text);
+               font-variant-numeric:tabular-nums;pointer-events:none;">0%</div>
+        </div>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-block">
+        <div class="hud-label" data-i18n="lives">Lives</div>
+        <div class="lives-display" id="hudLives"></div>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-block" id="hudTimerBlock">
+        <div class="hud-label" data-i18n="time">Time</div>
+        <div class="hud-value" id="hudTimer" style="font-variant-numeric:tabular-nums; letter-spacing:0.02em;">5:00</div>
+      </div>
+      <div class="hud-spacer"></div>
+      <div class="hud-block" style="align-items:center; justify-content:center;">
+        <button class="btn-pause-hud" id="btnPause" onclick="Game.togglePause()" title="Pause / Resume">
+          <span id="btnPauseIcon">⏸</span>
+        </button>
+      </div>
+      <div class="hud-sep"></div>
+      <div class="hud-block">
+        <div class="hud-label" data-i18n="mode">Mode</div>
+        <div class="hud-value" id="hudMode" style="font-size:13px; text-transform:uppercase; letter-spacing:0.05em;">—</div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BAR (mobile) -->
+    <div class="progress-wrap">
+      <div id="progressBar"></div>
+    </div>
+
+    <!-- CANVAS WRAP -->
+    <div id="canvasWrap">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Direction indicator -->
+      <div id="dirIndicator" class="wall-h">
+        <span class="dir-arrow">—</span>
+        <span id="dirLabel" data-i18n="horizontal">Horizontal</span>
+        <span class="dir-hint" id="dirHint" data-i18n="rightClickSwitch">(right-click)</span>
+      </div>
+
+      <!-- PAUSE OVERLAY -->
+      <div id="pauseOverlay" class="overlay hidden">
+        <!-- Blurred screenshot of game fills the background -->
+        <canvas id="pauseBlurCanvas" class="pause-blur-bg"></canvas>
+        <div class="overlay-card pause-card">
+          <div class="pause-icon">⏸</div>
+          <h2 data-i18n="paused">Paused</h2>
+          <p class="sub" data-i18n="pausedSub">Take a breath.</p>
+          <div class="overlay-btns">
+            <button class="btn primary" onclick="Game.togglePause()" data-i18n="resume">▶ Resume</button>
+            <button class="btn" onclick="UI.backToMenu()" data-i18n="mainMenu">⌂ Main Menu</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEVEL SPLASH OVERLAY -->
+      <div id="levelSplash" class="overlay hidden">
+        <div class="overlay-card">
+          <div class="level-splash-img">
+            <canvas id="splashImgCanvas" width="240" height="160"></canvas>
+          </div>
+          <h2 id="splashTitle"></h2>
+          <p class="sub" id="splashSub"></p>
+          <div class="stat-grid">
+            <div class="stat-item accent">
+              <div class="sk" data-i18n="captured">Captured</div>
+              <div class="sv" id="splashPct">—</div>
+            </div>
+            <div class="stat-item">
+              <div class="sk" data-i18n="score">Score</div>
+              <div class="sv" id="splashScore">—</div>
+            </div>
+            <div class="stat-item">
+              <div class="sk" data-i18n="time">Time</div>
+              <div class="sv" id="splashTime">—</div>
+            </div>
+            <div class="stat-item">
+              <div class="sk" data-i18n="lives">Lives</div>
+              <div class="sv" id="splashLives">—</div>
+            </div>
+          </div>
+          <div id="splashRecord" class="new-record hidden">⭐ <span data-i18n="newRecord">New Record!</span></div>
+          <div class="overlay-btns">
+            <button class="btn primary" id="btnNextLevel" onclick="Game.nextLevel()" data-i18n="nextLevel">Next Level →</button>
+            <button class="btn" onclick="UI.backToMenu()" data-i18n="mainMenu">⌂ Main Menu</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GAME OVER OVERLAY -->
+      <div id="gameoverOverlay" class="overlay hidden">
+        <div class="overlay-card">
+          <h2 data-i18n="gameOver">Game Over</h2>
+          <p class="sub" id="gameoverSub"></p>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <div class="sk" data-i18n="level">Level</div>
+              <div class="sv" id="goLevel">—</div>
+            </div>
+            <div class="stat-item accent">
+              <div class="sk" data-i18n="score">Score</div>
+              <div class="sv" id="goScore">—</div>
+            </div>
+          </div>
+          <div class="overlay-btns">
+            <button class="btn primary" onclick="Game.start()" data-i18n="tryAgain">↺ Try Again</button>
+            <button class="btn" onclick="UI.backToMenu()" data-i18n="mainMenu">⌂ Main Menu</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- end canvasWrap -->
+  </div><!-- end gameArea -->
+<footer id="siteFooter" class="site-footer" aria-label="Source code and support">
+  <a href="https://github.com/Fabrice-breizh" target="_blank" rel="noopener noreferrer">GitHub</a>
+  <span class="footer-sep" aria-hidden="true">·</span>
+  <a class="footer-support" href="https://www.buymeacoffee.com/fabricebreizh" target="_blank" rel="noopener noreferrer">
+    <svg class="footer-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 5h10v6a5 5 0 0 1-10 0V5Z"/><path d="M15 7h2a3 3 0 0 1 0 6h-2"/><path d="M4 19h13"/><path d="M7 22h7"/>
+    </svg>
+    <span data-i18n="footerBuyMe">Buy me</span>
+    <span class="footer-strike" data-i18n="footerCoffee">a coffee</span>
+    <strong data-i18n="footerTokens">some tokens</strong>
+    <svg class="footer-cup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 5h10v6a5 5 0 0 1-10 0V5Z"/><path d="M15 7h2a3 3 0 0 1 0 6h-2"/><path d="M4 19h13"/><path d="M7 22h7"/>
+    </svg>
+  </a>
+</footer>
+</div><!-- end app -->
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer"></div>
+
+
+
+<script>
+'use strict';
+
+// ============================================================
+// I18N — INTERNATIONALIZATION
+// ============================================================
+const I18n = {
+  lang: 'en',
+  translations: {
+    en: {
+      tagline: 'Wall · Capture · Escape',
+      selectMode: 'Select Mode',
+      easy: 'Easy',
+      easyDesc: '2 balls · slow',
+      medium: 'Medium',
+      mediumDesc: '3 balls · normal',
+      hard: 'Hard',
+      hardDesc: '5 balls · fast',
+      zen: 'Zen',
+      zenDesc: 'no timer · no death',
+      howToPlay: 'How To Play',
+      howto1: 'Click on the field to draw a wall',
+      howto2: 'Right-click (or long-press) to switch direction (H ↔ V)',
+      howto3: 'Capture 75% of the field to advance',
+      howto4: "Don't let a ball touch your wall while drawing!",
+      playBtn: '▶  Play',
+      scores: '🏆 Scores',
+      highScores: 'High Scores',
+      thLevel: 'Level',
+      thScore: 'Score',
+      thCapture: 'Capture',
+      noScores: 'No scores yet — play a game!',
+      back: '← Back',
+      settings: 'Settings',
+      theme: 'Theme',
+      language: 'Language',
+      soundEffects: 'Sound Effects',
+      animations: 'Animations',
+      close: '✕ Close',
+      level: 'Level',
+      score: 'Score',
+      captured: 'Captured',
+      lives: 'Lives',
+      mode: 'Mode',
+      horizontal: 'Horizontal',
+      vertical: 'Vertical',
+      rightClickSwitch: '(right-click)',
+      longPressSwitch: '(long press)',
+      paused: 'Paused',
+      pausedSub: 'Take a breath.',
+      resume: '▶ Resume',
+      abandonGame: '↩ Abandon',
+      levelComplete: 'Level Complete!',
+      levelCompleteSub: 'You captured {pct}% of the field!',
+      newRecord: 'New Record!',
+      nextLevel: 'Next Level →',
+      gameOver: 'Game Over',
+      gameOverLives: 'You ran out of lives.',
+      tryAgain: '↺ Try Again',
+      mainMenu: '⌂ Main Menu',
+      lifeLost: 'Life lost!',
+      wallBuilt: 'Wall built!',
+      footerText: 'No internet required',
+      footerBuyMe: 'Buy me',
+      footerCoffee: 'a coffee',
+      footerTokens: 'some tokens',
+      downloadHtml: 'Download game',
+      downloadedTitle: '✓ Downloaded!',
+      bonusLife: '💛 Bonus life!',
+      puClock: '+30 seconds',
+      puRemove: 'Ball removed!',
+      puAdd: 'Extra ball!',
+      puShield: 'Shield active!',
+      puSpeed: 'Speed wall!',
+      shieldUsed: 'Shield saved you!',
+      puFreeze: 'Freeze! 3 seconds',
+      puChaos:  'Chaos!',
+      time: 'Time',
+      timeUp: "Time's up!",
+      timeUpExtra: '-1 life · +1 minute',
+      landscape0: 'Lake at Dusk',
+      landscape1: 'Misty Forest',
+      landscape2: 'Snowy Peak',
+      landscape3: 'Tropical Shore',
+      landscape4: 'Lavender Fields',
+      landscape5: 'Desert Dunes',
+    },
+    fr: {
+      tagline: 'Murs · Capture · Évasion',
+      selectMode: 'Choisir un mode',
+      easy: 'Facile',
+      easyDesc: '2 balles · lent',
+      medium: 'Moyen',
+      mediumDesc: '3 balles · normal',
+      hard: 'Difficile',
+      hardDesc: '5 balles · rapide',
+      zen: 'Zen',
+      zenDesc: 'sans timer · sans mort',
+      howToPlay: 'Comment jouer',
+      howto1: 'Clic sur le terrain pour tracer un mur',
+      howto2: 'Clic droit (ou appui long) pour changer de direction (H ↔ V)',
+      howto3: 'Capturez 75% du terrain pour avancer',
+      howto4: "Ne laissez pas une balle toucher votre mur en cours de tracé !",
+      playBtn: '▶  Jouer',
+      scores: '🏆 Scores',
+      highScores: 'Meilleurs Scores',
+      thLevel: 'Niveau',
+      thScore: 'Score',
+      thCapture: 'Capture',
+      noScores: 'Aucun score — jouez une partie !',
+      back: '← Retour',
+      settings: 'Paramètres',
+      theme: 'Thème',
+      language: 'Langue',
+      soundEffects: 'Effets sonores',
+      animations: 'Animations',
+      close: '✕ Fermer',
+      level: 'Niveau',
+      score: 'Score',
+      captured: 'Capturé',
+      lives: 'Vies',
+      mode: 'Mode',
+      horizontal: 'Horizontal',
+      vertical: 'Vertical',
+      rightClickSwitch: '(clic droit)',
+      longPressSwitch: '(appui long)',
+      paused: 'Pause',
+      pausedSub: 'Soufflez un peu.',
+      resume: '▶ Reprendre',
+      abandonGame: '↩ Abandonner',
+      levelComplete: 'Niveau terminé !',
+      levelCompleteSub: 'Vous avez capturé {pct}% du terrain !',
+      newRecord: 'Nouveau Record !',
+      nextLevel: 'Niveau suivant →',
+      gameOver: 'Partie terminée',
+      gameOverLives: 'Vous n\'avez plus de vies.',
+      tryAgain: '↺ Réessayer',
+      mainMenu: '⌂ Menu principal',
+      lifeLost: 'Vie perdue !',
+      wallBuilt: 'Mur construit !',
+      footerText: 'Aucune connexion requise',
+      footerBuyMe: 'Offrez-moi',
+      footerCoffee: 'un café',
+      footerTokens: 'des tokens',
+      downloadHtml: 'Télécharger le jeu',
+      downloadedTitle: '✓ Téléchargé !',
+      bonusLife: '💛 Vie bonus !',
+      puClock: '+30 secondes',
+      puRemove: 'Balle supprimée !',
+      puAdd: 'Balle ajoutée !',
+      puShield: 'Bouclier actif !',
+      puSpeed: 'Mur rapide !',
+      shieldUsed: 'Bouclier activé !',
+      puFreeze: 'Gel ! 3 secondes',
+      puChaos:  'Chaos !',
+      time: 'Temps',
+      timeUp: 'Temps écoulé !',
+      timeUpExtra: '-1 vie · +1 minute',
+      landscape0: 'Lac au crépuscule',
+      landscape1: 'Forêt brumeuse',
+      landscape2: 'Cime enneigée',
+      landscape3: 'Rivage tropical',
+      landscape4: 'Champs de lavande',
+      landscape5: 'Dunes de sable',
+    }
+  },
+
+  // Get a translation string, with optional {key} substitution
+  t(key, vars) {
+    const tr = this.translations[this.lang] || this.translations.en;
+    let s = tr[key] || this.translations.en[key] || key;
+    if (vars) Object.keys(vars).forEach(k => { s = s.replace('{' + k + '}', vars[k]); });
+    return s;
+  },
+
+  // Apply all data-i18n attributes
+  apply() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      el.textContent = this.t(key);
+    });
+    // Update active lang button
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === this.lang);
+    });
+  },
+
+  // Detect browser language
+  detect() {
+    // navigator.languages is an array ordered by preference (most preferred first)
+    // Fallback to navigator.language, then navigator.userLanguage (IE), then 'en'
+    const langs = navigator.languages && navigator.languages.length
+      ? navigator.languages
+      : [navigator.language || navigator.userLanguage || 'en'];
+    for (const l of langs) {
+      const code = l.slice(0, 2).toLowerCase();
+      if (this.translations[code]) { this.lang = code; return; }
+    }
+    this.lang = 'en';
+  },
+
+  setLang(lang) {
+    if (!this.translations[lang]) return;
+    this.lang = lang;
+    const ls = document.getElementById('langSelect');
+    if (ls) ls.value = lang;
+    Prefs.save();
+    this.apply();
+  }
+};
+
+// ============================================================
+// PREFERENCES — persistent settings via localStorage
+// ============================================================
+const Prefs = {
+  defaults: { lang: 'en', theme: 'dark', sound: true, anim: true, mode: 'easy' },
+  data: {},
+
+  load() {
+    try {
+      const raw = localStorage.getItem('fabsJezzPrefs');
+      this.data = raw ? { ...this.defaults, ...JSON.parse(raw) } : { ...this.defaults };
+    } catch { this.data = { ...this.defaults }; }
+  },
+
+  save() {
+    this.data.lang  = I18n.lang;
+    this.data.theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    this.data.sound = State.soundOn;
+    this.data.anim  = State.animOn !== false;
+    this.data.mode  = State.mode;
+    // Never persist Infinity (zen lives) to localStorage
+    if (!isFinite(State.lives)) State.lives = 0;
+    try { localStorage.setItem('fabsJezzPrefs', JSON.stringify(this.data)); } catch {}
+  },
+
+  apply() {
+    I18n.lang = this.data.lang || 'en';
+    // Theme applied later in UI.init after DOM ready
+    State.soundOn = this.data.sound !== false;
+    State.animOn = this.data.anim !== false;
+    State.mode = this.data.mode || 'easy';
+  }
+};
+
+// ============================================================
+// SCORES — localStorage
+// ============================================================
+const Scores = {
+  key: 'fabsJezzScores',
+
+  load() {
+    try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch { return []; }
+  },
+
+  save(arr) {
+    try { localStorage.setItem(this.key, JSON.stringify(arr)); } catch {}
+  },
+
+  add(mode, level, score, pct) {
+    const arr = this.load();
+    arr.push({ mode, level, score, pct, date: Date.now() });
+    // Keep top 20 per mode
+    const modeScores = arr.filter(s => s.mode === mode).sort((a, b) => b.score - a.score).slice(0, 20);
+    const others = arr.filter(s => s.mode !== mode);
+    this.save([...others, ...modeScores]);
+    // Check new record
+    const best = modeScores[0];
+    return best && best.score === score && modeScores.filter(s => s.score === score).length === 1;
+  },
+
+  getMode(mode) {
+    return this.load()
+      .filter(s => s.mode === mode)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
+  }
+};
+
+// ============================================================
+// AUDIO ENGINE — Web Audio API synthesis, no files
+// ============================================================
+const Audio = (() => {
+  let ctx = null;
+
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  function beep(freq, type, dur, vol, startFreq) {
+    if (!State.soundOn) return;
+    try {
+      const c = getCtx();
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.connect(gain);
+      gain.connect(c.destination);
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(startFreq || freq, c.currentTime);
+      if (startFreq) osc.frequency.exponentialRampToValueAtTime(freq, c.currentTime + dur * 0.5);
+      gain.gain.setValueAtTime(vol || 0.15, c.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + dur);
+    } catch (e) {}
+  }
+
+  return {
+    wallStart() { beep(440, 'square', 0.08, 0.08); },
+    wallGrow()  { beep(660, 'sine', 0.04, 0.04); },
+    wallDone()  { beep(880, 'sine', 0.15, 0.12, 660); setTimeout(() => beep(1100, 'sine', 0.15, 0.1), 100); },
+    lifeLost()  { beep(200, 'sawtooth', 0.4, 0.15, 400); },
+    levelUp() {
+      const notes = [523, 659, 784, 1046];
+      notes.forEach((n, i) => setTimeout(() => beep(n, 'sine', 0.2, 0.12), i * 120));
+    },
+    gameOver()  { beep(300, 'sawtooth', 0.6, 0.15, 600); setTimeout(() => beep(150, 'sawtooth', 0.6, 0.12, 300), 200); },
+    capture()   { beep(550, 'sine', 0.12, 0.08, 440); },
+    freeze() {
+      // Descending icy tinkle
+      [1200, 900, 600, 400].forEach((f, i) =>
+        setTimeout(() => beep(f, 'sine', 0.15, 0.08), i * 80));
+    },
+    chaos() {
+      // Warped glitch burst
+      [300, 800, 200, 1000, 150].forEach((f, i) =>
+        setTimeout(() => beep(f, 'sawtooth', 0.08, 0.06), i * 60));
+    },
+    click()     { beep(800, 'sine', 0.06, 0.06); }
+  };
+})();
+
+// ============================================================
+// STATE — global game state
+// ============================================================
+const State = {
+  // Settings
+  soundOn: true,
+  animOn: true,
+  mode: 'easy',
+
+  // Game state
+  running: false,
+  paused: false,
+  level: 1,
+  score: 0,
+  lives: 3,
+
+  // Fixed logical grid — NEVER changes during a session
+  CELL:  8,    // logical px per cell (constant)
+  COLS: 120,   // fixed grid width  (120 × 8 = 960 logical px)
+  ROWS:  75,   // fixed grid height ( 75 × 8 = 600 logical px)
+  get canvasW() { return this.COLS * this.CELL; }, // 960
+  get canvasH() { return this.ROWS * this.CELL; }, // 600
+
+  // Aliases kept for compatibility
+  get cellSize() { return this.CELL; },
+  get gridW()    { return this.COLS; },
+  get gridH()    { return this.ROWS; },
+
+  // Display scale — set by resize(), never affects game coords
+  scale: 1,
+
+  // Grid: 0=free, 1=wall, 2=captured, 3=border, 4=wall-being-drawn
+  grid: null,
+
+  // Balls (coordinates in LOGICAL px)
+  balls: [],
+
+  // Active wall being drawn
+  activeWall: null,
+  wallDir: 'H',  // 'H' or 'V'
+
+  // Stats
+  capturedPct: 0,
+
+  // Mouse position in LOGICAL px (converted from screen px on input)
+  mouseX: undefined,
+  mouseY: undefined,
+
+  // Countdown timer
+  timeLeft: 300,
+  timerWarning: false,
+
+  // Power-ups active on the grid
+  // Each: { gx, gy, type, anim } where type is one of the POWERUP_TYPES keys
+  powerups: [],
+  powerupTimer: 0,        // counts up to POWERUP_INTERVAL
+  shieldActive: false,    // next wall is invincible
+  speedBoostActive: false, // next wall grows at 3× speed
+  freezeTimer: 0,         // seconds remaining on freeze (balls at 20% speed)
+  chaosActive: false,     // chaos: balls change direction every 0.4s
+  chaosTick: 0,           // time accumulator for chaos direction flip
+};
+
+// ============================================================
+// LANDSCAPES — SVG procedural scenery drawn to canvas
+// Each is a function (ctx, w, h) => void
+// ============================================================
+const Landscapes = [
+  // 0 — Lake at Dusk
+  function(ctx, w, h) {
+    // Sky gradient
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+    sky.addColorStop(0, '#1a0533');
+    sky.addColorStop(0.4, '#5c1d6e');
+    sky.addColorStop(0.7, '#c9571a');
+    sky.addColorStop(1, '#f5a623');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h * 0.55);
+
+    // Sun
+    ctx.beginPath();
+    ctx.arc(w * 0.65, h * 0.35, h * 0.1, 0, Math.PI * 2);
+    const sunGrad = ctx.createRadialGradient(w * 0.65, h * 0.35, 0, w * 0.65, h * 0.35, h * 0.1);
+    sunGrad.addColorStop(0, '#fff7e0');
+    sunGrad.addColorStop(0.5, '#ffd166');
+    sunGrad.addColorStop(1, '#f5a623');
+    ctx.fillStyle = sunGrad;
+    ctx.fill();
+
+    // Mountains silhouette
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.5);
+    ctx.lineTo(w * 0.1, h * 0.32);
+    ctx.lineTo(w * 0.25, h * 0.45);
+    ctx.lineTo(w * 0.38, h * 0.28);
+    ctx.lineTo(w * 0.52, h * 0.42);
+    ctx.lineTo(w * 0.7, h * 0.22);
+    ctx.lineTo(w * 0.85, h * 0.38);
+    ctx.lineTo(w, h * 0.3);
+    ctx.lineTo(w, h * 0.55);
+    ctx.closePath();
+    ctx.fillStyle = '#1a0a2e';
+    ctx.fill();
+
+    // Lake
+    const lake = ctx.createLinearGradient(0, h * 0.55, 0, h);
+    lake.addColorStop(0, '#6b2fa0');
+    lake.addColorStop(0.3, '#3d1a5c');
+    lake.addColorStop(1, '#0d0820');
+    ctx.fillStyle = lake;
+    ctx.fillRect(0, h * 0.55, w, h * 0.45);
+
+    // Sun reflection
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    const refGrad = ctx.createLinearGradient(w * 0.55, h * 0.55, w * 0.75, h);
+    refGrad.addColorStop(0, '#ffd166');
+    refGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = refGrad;
+    ctx.beginPath();
+    ctx.ellipse(w * 0.65, h * 0.77, w * 0.08, h * 0.23, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Water ripples
+    ctx.save();
+    ctx.globalAlpha = 0.15;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < 6; i++) {
+      const y = h * 0.6 + i * h * 0.07;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(w * 0.25, y - 3, w * 0.75, y + 3, w, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Stars
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 30; i++) {
+      const sx = (Math.sin(i * 127.3) * 0.5 + 0.5) * w;
+      const sy = (Math.sin(i * 73.9) * 0.5 + 0.5) * h * 0.32;
+      const sr = 0.5 + (Math.sin(i * 41.1) * 0.5 + 0.5);
+      ctx.globalAlpha = 0.3 + Math.sin(i * 11.7) * 0.3;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  },
+
+  // 1 — Misty Forest
+  function(ctx, w, h) {
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#c8e6f5');
+    sky.addColorStop(0.4, '#e8f5e9');
+    sky.addColorStop(1, '#b2dfdb');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    // Mist layers
+    for (let m = 0; m < 4; m++) {
+      const mist = ctx.createLinearGradient(0, h * (0.3 + m * 0.1), 0, h * (0.5 + m * 0.12));
+      mist.addColorStop(0, 'transparent');
+      mist.addColorStop(0.5, `rgba(220,240,235,${0.4 - m * 0.08})`);
+      mist.addColorStop(1, 'transparent');
+      ctx.fillStyle = mist;
+      ctx.fillRect(0, h * (0.3 + m * 0.1), w, h * 0.2);
+    }
+
+    // Trees (back layer)
+    function drawTree(x, y, tw, th, color) {
+      ctx.fillStyle = color;
+      // Trunk
+      ctx.fillRect(x - tw * 0.06, y, tw * 0.12, th * 0.3);
+      // Foliage layers
+      for (let l = 0; l < 3; l++) {
+        ctx.beginPath();
+        const lw = tw * (1 - l * 0.25);
+        const ly = y - th * (0.2 + l * 0.28);
+        ctx.moveTo(x, ly - th * 0.3);
+        ctx.lineTo(x + lw / 2, ly + th * 0.05);
+        ctx.lineTo(x - lw / 2, ly + th * 0.05);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // Far trees (muted)
+    ctx.globalAlpha = 0.35;
+    for (let i = 0; i < 12; i++) {
+      const tx = (i / 11) * w * 1.1 - w * 0.05;
+      drawTree(tx, h * 0.65, w * 0.08, h * 0.4, '#4a7c59');
+    }
+
+    // Mid trees
+    ctx.globalAlpha = 0.65;
+    for (let i = 0; i < 9; i++) {
+      const tx = (i / 8) * w * 1.1 - w * 0.05;
+      drawTree(tx, h * 0.72, w * 0.09, h * 0.45, '#2d6a4f');
+    }
+
+    // Near trees (dark)
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < 6; i++) {
+      const tx = ((i + 0.5) / 6) * w;
+      drawTree(tx, h * 0.85, w * 0.1, h * 0.5, '#1b4332');
+    }
+
+    // Ground
+    const ground = ctx.createLinearGradient(0, h * 0.8, 0, h);
+    ground.addColorStop(0, '#2d6a4f');
+    ground.addColorStop(1, '#081c15');
+    ctx.fillStyle = ground;
+    ctx.fillRect(0, h * 0.82, w, h * 0.18);
+    ctx.globalAlpha = 1;
+  },
+
+  // 2 — Snowy Peak
+  function(ctx, w, h) {
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.7);
+    sky.addColorStop(0, '#0a1929');
+    sky.addColorStop(0.5, '#1565c0');
+    sky.addColorStop(1, '#42a5f5');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h * 0.7);
+
+    // Stars
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 50; i++) {
+      const sx = (Math.sin(i * 173.3) * 0.5 + 0.5) * w;
+      const sy = (Math.sin(i * 97.9) * 0.5 + 0.5) * h * 0.4;
+      ctx.globalAlpha = 0.4 + Math.sin(i * 33) * 0.3;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Mountain
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.85);
+    ctx.lineTo(w * 0.15, h * 0.5);
+    ctx.lineTo(w * 0.35, h * 0.7);
+    ctx.lineTo(w * 0.5, h * 0.15);
+    ctx.lineTo(w * 0.65, h * 0.65);
+    ctx.lineTo(w * 0.85, h * 0.48);
+    ctx.lineTo(w, h * 0.7);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fillStyle = '#1a237e';
+    ctx.fill();
+
+    // Snow cap
+    ctx.beginPath();
+    ctx.moveTo(w * 0.42, h * 0.28);
+    ctx.lineTo(w * 0.5, h * 0.15);
+    ctx.lineTo(w * 0.58, h * 0.28);
+    ctx.lineTo(w * 0.54, h * 0.32);
+    ctx.lineTo(w * 0.5, h * 0.22);
+    ctx.lineTo(w * 0.46, h * 0.32);
+    ctx.closePath();
+    ctx.fillStyle = '#e3f2fd';
+    ctx.fill();
+
+    // Snow on other peaks
+    ctx.beginPath();
+    ctx.moveTo(w * 0.08, h * 0.57);
+    ctx.lineTo(w * 0.15, h * 0.5);
+    ctx.lineTo(w * 0.22, h * 0.57);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(227,242,253,0.6)';
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(w * 0.78, h * 0.54);
+    ctx.lineTo(w * 0.85, h * 0.48);
+    ctx.lineTo(w * 0.92, h * 0.54);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(227,242,253,0.6)';
+    ctx.fill();
+
+    // Snow ground
+    const snow = ctx.createLinearGradient(0, h * 0.8, 0, h);
+    snow.addColorStop(0, '#bbdefb');
+    snow.addColorStop(0.4, '#e3f2fd');
+    snow.addColorStop(1, '#fff');
+    ctx.fillStyle = snow;
+    ctx.fillRect(0, h * 0.8, w, h * 0.2);
+  },
+
+  // 3 — Tropical Shore
+  function(ctx, w, h) {
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.5);
+    sky.addColorStop(0, '#0277bd');
+    sky.addColorStop(0.6, '#29b6f6');
+    sky.addColorStop(1, '#b3e5fc');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h * 0.5);
+
+    // Sun
+    ctx.beginPath();
+    ctx.arc(w * 0.2, h * 0.18, h * 0.09, 0, Math.PI * 2);
+    const sg = ctx.createRadialGradient(w * 0.2, h * 0.18, 0, w * 0.2, h * 0.18, h * 0.09);
+    sg.addColorStop(0, '#fff9c4');
+    sg.addColorStop(0.6, '#fff176');
+    sg.addColorStop(1, '#ffca28');
+    ctx.fillStyle = sg;
+    ctx.fill();
+
+    // Clouds
+    function cloud(cx, cy, cw) {
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, cw, cw * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx - cw * 0.3, cy + cw * 0.1, cw * 0.6, cw * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + cw * 0.35, cy + cw * 0.1, cw * 0.55, cw * 0.32, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    cloud(w * 0.55, h * 0.1, w * 0.12);
+    cloud(w * 0.82, h * 0.07, w * 0.09);
+
+    // Sea
+    const sea = ctx.createLinearGradient(0, h * 0.5, 0, h * 0.72);
+    sea.addColorStop(0, '#0288d1');
+    sea.addColorStop(0.4, '#00acc1');
+    sea.addColorStop(1, '#26c6da');
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, h * 0.5, w, h * 0.22);
+
+    // Sea shimmer
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    for (let r = 0; r < 5; r++) {
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.52 + r * h * 0.04);
+      ctx.bezierCurveTo(w * 0.3, h * 0.5 + r * h * 0.04, w * 0.7, h * 0.54 + r * h * 0.04, w, h * 0.52 + r * h * 0.04);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Sand
+    const sand = ctx.createLinearGradient(0, h * 0.7, 0, h);
+    sand.addColorStop(0, '#ffe082');
+    sand.addColorStop(0.3, '#ffcc02');
+    sand.addColorStop(1, '#ffa000');
+    ctx.fillStyle = sand;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.73);
+    ctx.bezierCurveTo(w * 0.3, h * 0.68, w * 0.7, h * 0.75, w, h * 0.7);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Palm tree
+    function palm(px, py, ph) {
+      // Trunk
+      ctx.save();
+      ctx.strokeStyle = '#5d4037';
+      ctx.lineWidth = ph * 0.06;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.bezierCurveTo(px + ph * 0.1, py - ph * 0.3, px - ph * 0.05, py - ph * 0.7, px, py - ph);
+      ctx.stroke();
+      ctx.restore();
+      // Leaves
+      const leafColors = ['#2e7d32', '#388e3c', '#43a047', '#1b5e20'];
+      const angles = [-60, -30, 0, 30, 60, 90];
+      angles.forEach((a, i) => {
+        ctx.save();
+        ctx.translate(px, py - ph);
+        ctx.rotate((a * Math.PI) / 180);
+        ctx.fillStyle = leafColors[i % leafColors.length];
+        ctx.beginPath();
+        ctx.ellipse(0, -ph * 0.25, ph * 0.06, ph * 0.28, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+    }
+    palm(w * 0.15, h * 0.78, h * 0.28);
+    palm(w * 0.88, h * 0.82, h * 0.24);
+  },
+
+  // 4 — Lavender Fields
+  function(ctx, w, h) {
+    // Sky
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+    sky.addColorStop(0, '#e8eaf6');
+    sky.addColorStop(0.5, '#c5cae9');
+    sky.addColorStop(1, '#b39ddb');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h * 0.55);
+
+    // Sun / warm light
+    ctx.beginPath();
+    ctx.arc(w * 0.75, h * 0.2, h * 0.08, 0, Math.PI * 2);
+    const sg = ctx.createRadialGradient(w * 0.75, h * 0.2, 0, w * 0.75, h * 0.2, h * 0.08);
+    sg.addColorStop(0, '#fff8e1');
+    sg.addColorStop(1, 'rgba(255,245,200,0)');
+    ctx.fillStyle = sg;
+    ctx.fill();
+
+    // Rolling hills
+    const hillGrad = ctx.createLinearGradient(0, h * 0.45, 0, h);
+    hillGrad.addColorStop(0, '#7b1fa2');
+    hillGrad.addColorStop(0.15, '#8e24aa');
+    hillGrad.addColorStop(0.4, '#9c27b0');
+    hillGrad.addColorStop(0.7, '#7b1fa2');
+    hillGrad.addColorStop(1, '#4a148c');
+    ctx.fillStyle = hillGrad;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.52);
+    ctx.bezierCurveTo(w * 0.2, h * 0.46, w * 0.5, h * 0.5, w, h * 0.48);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Lavender rows
+    const rowColors = ['#ce93d8','#ba68c8','#ab47bc','#9c27b0','#8e24aa'];
+    for (let row = 0; row < 8; row++) {
+      const ry = h * 0.54 + row * h * 0.056;
+      ctx.fillStyle = rowColors[row % rowColors.length];
+      ctx.globalAlpha = 0.6 + row * 0.04;
+      for (let col = 0; col < Math.round(w / 10); col++) {
+        const rx = col * 10 + (row % 2) * 5;
+        // Stem
+        ctx.fillRect(rx + 4, ry, 2, 8);
+        // Floret
+        ctx.beginPath();
+        ctx.ellipse(rx + 5, ry - 3, 3, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // Path
+    ctx.fillStyle = 'rgba(255,248,225,0.4)';
+    ctx.beginPath();
+    ctx.moveTo(w * 0.45, h);
+    ctx.bezierCurveTo(w * 0.47, h * 0.75, w * 0.5, h * 0.6, w * 0.52, h * 0.55);
+    ctx.bezierCurveTo(w * 0.54, h * 0.6, w * 0.57, h * 0.75, w * 0.55, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Distant village / house silhouette
+    ctx.fillStyle = 'rgba(69,8,90,0.7)';
+    ctx.fillRect(w * 0.3, h * 0.46, w * 0.04, h * 0.04);
+    ctx.beginPath();
+    ctx.moveTo(w * 0.3, h * 0.46);
+    ctx.lineTo(w * 0.32, h * 0.42);
+    ctx.lineTo(w * 0.34, h * 0.46);
+    ctx.closePath();
+    ctx.fill();
+  },
+
+  // 5 — Desert Dunes
+  function(ctx, w, h) {
+    // Sky gradient — deep warm
+    const sky = ctx.createLinearGradient(0, 0, 0, h * 0.55);
+    sky.addColorStop(0, '#0d1b2a');
+    sky.addColorStop(0.3, '#1f3250');
+    sky.addColorStop(0.65, '#c0522a');
+    sky.addColorStop(1, '#e8824a');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h * 0.55);
+
+    // Stars
+    for (let i = 0; i < 60; i++) {
+      const sx = (Math.sin(i * 237.1) * 0.5 + 0.5) * w;
+      const sy = (Math.sin(i * 89.3) * 0.5 + 0.5) * h * 0.35;
+      ctx.globalAlpha = 0.2 + Math.sin(i * 57) * 0.25;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(sx, sy, 0.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    // Moon
+    ctx.beginPath();
+    ctx.arc(w * 0.82, h * 0.15, h * 0.07, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff8e1';
+    ctx.fill();
+    // Moon shadow (crescent)
+    ctx.beginPath();
+    ctx.arc(w * 0.85, h * 0.14, h * 0.065, 0, Math.PI * 2);
+    ctx.fillStyle = '#1f3250';
+    ctx.fill();
+
+    // Dune 1 (far)
+    const d1 = ctx.createLinearGradient(0, h * 0.45, 0, h);
+    d1.addColorStop(0, '#c9a063');
+    d1.addColorStop(0.4, '#b8843f');
+    d1.addColorStop(1, '#7d5425');
+    ctx.fillStyle = d1;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.65);
+    ctx.bezierCurveTo(w * 0.1, h * 0.48, w * 0.3, h * 0.52, w * 0.5, h * 0.5);
+    ctx.bezierCurveTo(w * 0.7, h * 0.48, w * 0.85, h * 0.58, w, h * 0.55);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dune 2 (near)
+    const d2 = ctx.createLinearGradient(0, h * 0.6, 0, h);
+    d2.addColorStop(0, '#e0b97a');
+    d2.addColorStop(0.3, '#c9913a');
+    d2.addColorStop(1, '#8b5e1f');
+    ctx.fillStyle = d2;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.85);
+    ctx.bezierCurveTo(w * 0.15, h * 0.68, w * 0.4, h * 0.62, w * 0.6, h * 0.65);
+    ctx.bezierCurveTo(w * 0.78, h * 0.68, w * 0.9, h * 0.78, w, h * 0.72);
+    ctx.lineTo(w, h);
+    ctx.lineTo(0, h);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dune ridge highlights
+    ctx.save();
+    ctx.globalAlpha = 0.3;
+    ctx.strokeStyle = '#fff8e1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.7);
+    ctx.bezierCurveTo(w * 0.15, h * 0.68, w * 0.4, h * 0.62, w * 0.6, h * 0.65);
+    ctx.stroke();
+    ctx.restore();
+
+    // Cactus
+    function cactus(cx, cy, ch) {
+      ctx.fillStyle = '#2d6a4f';
+      ctx.fillRect(cx - ch * 0.06, cy - ch, ch * 0.12, ch);
+      // Arms
+      ctx.fillRect(cx - ch * 0.3, cy - ch * 0.65, ch * 0.24, ch * 0.09);
+      ctx.fillRect(cx - ch * 0.3, cy - ch * 0.75, ch * 0.09, ch * 0.15);
+      ctx.fillRect(cx + ch * 0.06, cy - ch * 0.5, ch * 0.24, ch * 0.09);
+      ctx.fillRect(cx + ch * 0.21, cy - ch * 0.62, ch * 0.09, ch * 0.16);
+    }
+    cactus(w * 0.12, h * 0.78, h * 0.18);
+    cactus(w * 0.75, h * 0.85, h * 0.13);
+  }
+];
+
+// ============================================================
+// GAME ENGINE
+// ============================================================
+const Game = {
+  canvas: null,
+  ctx: null,
+  raf: null,
+  lastTime: 0,
+
+  // Mode configs
+  modes: {
+    // baseSpeed      : initial ball speed in px/s
+    // speedIncrement : added each level
+    // maxSpeed       : hard cap
+    // timeLimit      : seconds per level (countdown)
+    easy:   { baseBalls: 2, baseSpeed: 130, lives: 5, ballIncrement: 1, speedIncrement: 18, maxSpeed: 320, timeLimit: 300 },
+    medium: { baseBalls: 3, baseSpeed: 195, lives: 3, ballIncrement: 1, speedIncrement: 28, maxSpeed: 460, timeLimit: 210 },
+    hard:   { baseBalls: 5, baseSpeed: 290, lives: 2, ballIncrement: 2, speedIncrement: 42, maxSpeed: 620, timeLimit: 150 },
+    zen:    { baseBalls: 2, baseSpeed: 150, lives: 0,  ballIncrement: 1, speedIncrement: 12, maxSpeed: 260, timeLimit: 0 }
+  },
+
+  // Current landscape index
+  landscapeIdx: 0,
+  // Offscreen canvas for the landscape
+  landscapeCanvas: null,
+  // Offscreen canvas for the mask (reveal overlay)
+  maskCanvas: null,
+  maskCtx: null,
+
+  init() {
+    this.canvas = document.getElementById('gameCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.landscapeCanvas = document.createElement('canvas');
+    this.maskCanvas = document.createElement('canvas');
+    this.maskCtx = this.maskCanvas.getContext('2d');
+
+    // Set fixed canvas dimensions once
+    this.initCanvas();
+
+    this.canvas.addEventListener('click', this.onCanvasClick.bind(this));
+    this.canvas.addEventListener('contextmenu', this.onRightClick.bind(this));
+    this.canvas.addEventListener('mousemove', this.onMouseMove.bind(this));
+    this.canvas.addEventListener('touchstart', this.onTouch.bind(this), { passive: false });
+    this.canvas.addEventListener('touchend', this.onTouchEnd.bind(this), { passive: false });
+
+    // Debounced resize — only recomputes CSS scale, never breaks game state
+    let _resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(_resizeTimer);
+      _resizeTimer = setTimeout(() => this.resize(), 80);
+    });
+    this.resize();
+  },
+
+  start() {
+    State.level = 1;
+    State.score = 0;
+    State.lives = State.mode === 'zen' ? Infinity : this.modes[State.mode].lives;
+    State.paused = false;
+    State.wallDir = 'H';
+    this.landscapeIdx = 0;
+    UI.showGame(); // make #gameArea visible first
+    // Wait one frame so the browser lays out #canvasWrap before we measure it
+    requestAnimationFrame(() => {
+      this.resize();
+      this.startLevel();
+    });
+  },
+
+  startLevel() {
+    // Reset countdown for this level
+    const cfg = this.modes[State.mode];
+    State.timeLeft = cfg.timeLimit;
+    State.timerWarning = false;
+    const timerBlock = document.getElementById('hudTimerBlock');
+    if (timerBlock) timerBlock.style.display = State.mode === 'zen' ? 'none' : '';
+
+    this.buildGrid();
+    PowerUps.reset();
+    this.spawnBalls();
+    this.loadLandscape();
+    this.buildMask();
+    UI.updateHUD();
+    UI.updateDirIndicator();
+
+    // Hide overlays
+    document.getElementById('pauseOverlay').classList.add('hidden');
+    document.getElementById('levelSplash').classList.add('hidden');
+    document.getElementById('gameoverOverlay').classList.add('hidden');
+
+    State.running = true;
+    State.paused = false;
+    State.activeWall = null;
+
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.lastTime = performance.now();
+    this.raf = requestAnimationFrame(this.loop.bind(this));
+  },
+
+  resize() {
+    // Logical resolution: 960 × 600 (State.canvasW/H) — never changes.
+    // CSS size: fit inside the wrap while keeping the 8:5 aspect ratio.
+    // ctx.setTransform(scale,0,0,scale,0,0) maps logical→screen each frame.
+    const wrap = document.getElementById('canvasWrap');
+    if (!wrap) return;
+    const ww = wrap.clientWidth;
+    const wh = wrap.clientHeight;
+    if (ww === 0 || wh === 0) return; // still hidden
+
+    // Breathing room on all sides.
+    // Bottom: 16px margin + 52px footer pill + 8px gap = 76px total clearance.
+    const marginH   = 16;               // left & right
+    const marginTop = 16;               // top
+    const marginBot = 16 + 52 + 8;     // bottom = margin + footer + extra gap
+    const scaleX = (ww - marginH * 2)           / State.canvasW;
+    const scaleY = (wh - marginTop - marginBot)  / State.canvasH;
+    State.scale  = Math.min(scaleX, scaleY);
+
+    // Set CSS display size — browser scales pixels, game coords stay logical
+    const cssW = Math.floor(State.canvasW * State.scale);
+    const cssH = Math.floor(State.canvasH * State.scale);
+    this.canvas.style.width     = cssW + 'px';
+    this.canvas.style.height    = cssH + 'px';
+    this.canvas.style.position  = 'static';
+    this.canvas.style.transform = 'none';
+    // Center horizontally via flexbox justify-content:center (no margin-left needed).
+    // Set explicit top margin so the canvas starts below the 12px breathing zone.
+    this.canvas.style.marginTop    = marginTop + 'px';
+    this.canvas.style.marginLeft   = '0';
+    this.canvas.style.marginRight  = '0';
+    this.canvas.style.marginBottom = '0';
+  },
+
+  // Called once: set fixed internal resolution (never changes on resize)
+  initCanvas() {
+    this.canvas.width  = State.canvasW;   // internal px = 960
+    this.canvas.height = State.canvasH;   // internal px = 600
+    this.landscapeCanvas.width  = State.canvasW;
+    this.landscapeCanvas.height = State.canvasH;
+    this.maskCanvas.width  = State.canvasW;
+    this.maskCanvas.height = State.canvasH;
+  },
+
+  buildGrid() {
+    const { COLS, ROWS } = State;
+    State.grid = new Uint8Array(COLS * ROWS);
+    // Draw border walls (type 3)
+    for (let x = 0; x < COLS; x++) {
+      State.grid[0 * COLS + x] = 3;
+      State.grid[(ROWS - 1) * COLS + x] = 3;
+    }
+    for (let y = 0; y < ROWS; y++) {
+      State.grid[y * COLS + 0] = 3;
+      State.grid[y * COLS + (COLS - 1)] = 3;
+    }
+    State.capturedPct = 0;
+  },
+
+  loadLandscape() {
+    const lc = this.landscapeCanvas;
+    const lctx = lc.getContext('2d');
+    lctx.clearRect(0, 0, lc.width, lc.height);
+    const fn = Landscapes[this.landscapeIdx % Landscapes.length];
+    fn(lctx, lc.width, lc.height);
+  },
+
+  // Mask: black = hidden, transparent = revealed
+  buildMask() {
+    const mc = this.maskCanvas;
+    const mctx = this.maskCtx;
+    mctx.clearRect(0, 0, mc.width, mc.height);
+    // Full black mask
+    mctx.fillStyle = 'rgba(0,0,0,1)';
+    mctx.fillRect(0, 0, mc.width, mc.height);
+    // Reveal border cells
+    this.revealCells(true);
+  },
+
+  // Punch holes in the mask for captured zones
+  revealCells(initial) {
+    const { grid, COLS, ROWS, CELL } = State;
+    const mctx = this.maskCtx;
+    mctx.globalCompositeOperation = 'destination-out';
+    mctx.fillStyle = 'rgba(0,0,0,1)';
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const v = grid[y * COLS + x];
+        if (v === 1 || v === 2 || v === 3) {
+          mctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        }
+      }
+    }
+    mctx.globalCompositeOperation = 'source-over';
+  },
+
+  spawnBalls() {
+    const cfg = this.modes[State.mode];
+    const count = Math.min(cfg.baseBalls + (State.level - 1) * cfg.ballIncrement, 10);
+    // Speed in logical px/s — fixed grid means consistent difficulty on every screen
+    const speed = Math.min(
+      cfg.baseSpeed + (State.level - 1) * cfg.speedIncrement,
+      cfg.maxSpeed
+    );
+
+    State.balls = [];
+    const { COLS, ROWS, CELL } = State;
+    const margin = 5;
+    const ballR = CELL * 1.05; // slightly larger for better visibility
+
+    for (let i = 0; i < count; i++) {
+      // Small angle offset per ball so they never all travel in the same direction,
+      // but all move at exactly the same speed — no perception of unfairness.
+      const angle = Math.random() * Math.PI * 2;
+      const spd = speed;
+      // Random position in the playfield (avoiding borders)
+      const gx = margin + Math.floor(Math.random() * (COLS - margin * 2));
+      const gy = margin + Math.floor(Math.random() * (ROWS - margin * 2));
+        const ballTypes = ['tennis', 'soccer', 'basket', 'volley', 'billiard', 'beach'];
+      State.balls.push({
+        x: gx * CELL + CELL / 2,
+        y: gy * CELL + CELL / 2,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
+        r: ballR,
+        type: ballTypes[i % ballTypes.length],
+        angle: Math.random() * Math.PI * 2,  // current rotation angle
+        trail: []
+      });
+    }
+  },
+
+  loop(ts) {
+    if (!State.running) return;
+    if (!State.paused) {
+      const dt = Math.min((ts - this.lastTime) / 1000, 0.05);
+      this.lastTime = ts;
+      this.update(dt);
+    } else {
+      this.lastTime = ts;
+    }
+    this.render();
+    this.raf = requestAnimationFrame(this.loop.bind(this));
+  },
+
+  update(dt) {
+    this.updateTimer(dt);
+    this.updateBalls(dt);
+    this.updateWall(dt);
+    PowerUps.update(dt);
+  },
+
+  updateTimer(dt) {
+    if (State.mode === 'zen' || State.timeLeft <= 0) return;
+    State.timeLeft -= dt;
+
+    // Warning pulse when < 30 seconds
+    if (State.timeLeft < 30 && !State.timerWarning) {
+      State.timerWarning = true;
+      document.getElementById('hudTimerBlock').classList.add('timer-warning');
+    }
+
+    // Update HUD display
+    const secs = Math.max(0, Math.ceil(State.timeLeft));
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    const el = document.getElementById('hudTimer');
+    if (el && State.mode !== 'zen') el.textContent = m + ':' + String(s).padStart(2, '0');
+
+    // Time expired
+    if (State.timeLeft <= 0) {
+      State.timeLeft = 0;
+      this.onTimeUp();
+    }
+  },
+
+  onTimeUp() {
+    // Lose 1 life and add 60 seconds to continue the current level
+    State.lives--;
+    Audio.lifeLost();
+    UI.shakeCanvas();
+    UI.updateHUD();
+
+    if (State.lives <= 0) {
+      UI.toast(I18n.t('timeUp'), 'error');
+      this.onGameOver();
+      return;
+    }
+
+    // +60 seconds — restart warning threshold too
+    State.timeLeft = 60;
+    State.timerWarning = false;
+    document.getElementById('hudTimerBlock').classList.remove('timer-warning');
+    UI.toast('⏱ ' + I18n.t('timeUpExtra'), 'warn');
+  },
+
+  updateBalls(dt) {
+    const { cellSize, gridW, gridH, grid, canvasW, canvasH } = State;
+
+    // --- Freeze: tick down, apply speed factor ---
+    let freezeFactor = 1;
+    if (State.freezeTimer > 0) {
+      State.freezeTimer = Math.max(0, State.freezeTimer - dt);
+      // 20% speed while frozen; ease back to full over last 0.5s
+      freezeFactor = State.freezeTimer > 0.5 ? 0.20 : 0.20 + (0.8 * (0.5 - State.freezeTimer) / 0.5);
+    }
+
+    // --- Chaos: flip a random ball direction every 0.4s ---
+    if (State.chaosActive) {
+      State.chaosTick += dt;
+      if (State.chaosTick >= 0.4) {
+        State.chaosTick = 0;
+        const idx = Math.floor(Math.random() * State.balls.length);
+        const b = State.balls[idx];
+        if (b) {
+          // Flip one axis randomly for unpredictability
+          if (Math.random() < 0.5) b.vx = -b.vx; else b.vy = -b.vy;
+        }
+      }
+    }
+
+    for (const ball of State.balls) {
+      // Trail
+      ball.trail.push({ x: ball.x, y: ball.y });
+      if (ball.trail.length > 7) ball.trail.shift();
+      // Spin proportional to speed
+      const spd = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+      ball.angle = (ball.angle || 0) + spd * dt * 0.04;
+
+      // Predict next position (freeze slows movement)
+      const nx = ball.x + ball.vx * dt * freezeFactor;
+      const ny = ball.y + ball.vy * dt * freezeFactor;
+
+      // Helper: is a pixel position blocked?
+      const isBlocked = (px, py) => {
+        const gx = Math.floor(px / cellSize);
+        const gy = Math.floor(py / cellSize);
+        if (gx < 0 || gx >= gridW || gy < 0 || gy >= gridH) return true;
+        const v = grid[gy * gridW + gx];
+        return v === 1 || v === 3; // completed walls and borders block
+      };
+
+      // Check X movement
+      const testX = nx + (ball.vx > 0 ? ball.r : -ball.r);
+      if (isBlocked(testX, ball.y)) {
+        ball.vx *= -1;
+        ball.x = ball.x; // keep current x
+      } else {
+        ball.x = nx;
+      }
+
+      // Check Y movement
+      const testY = ny + (ball.vy > 0 ? ball.r : -ball.r);
+      if (isBlocked(ball.x, testY)) {
+        ball.vy *= -1;
+        ball.y = ball.y;
+      } else {
+        ball.y = ny;
+      }
+
+      // Hard clamp
+      ball.x = Math.max(ball.r + cellSize, Math.min(canvasW - ball.r - cellSize, ball.x));
+      ball.y = Math.max(ball.r + cellSize, Math.min(canvasH - ball.r - cellSize, ball.y));
+
+      // Check collision with active wall (type 4 cells)
+      if (State.activeWall) {
+        if (this.ballHitsActiveWall(ball)) {
+          this.onWallKilled();
+          return; // Stop processing balls this frame
+        }
+      }
+    }
+  },
+
+  ballHitsActiveWall(ball) {
+    const { grid, COLS, ROWS, CELL } = State;
+    const margin = ball.r * 0.5;
+    // Check if ball overlaps any type-4 cell (building wall) in logical coords
+    const x0 = Math.floor((ball.x - margin) / CELL);
+    const x1 = Math.floor((ball.x + margin) / CELL);
+    const y0 = Math.floor((ball.y - margin) / CELL);
+    const y1 = Math.floor((ball.y + margin) / CELL);
+    for (let cy = y0; cy <= y1; cy++) {
+      for (let cx = x0; cx <= x1; cx++) {
+        if (cx < 0 || cx >= COLS || cy < 0 || cy >= ROWS) continue;
+        const idx = cy * COLS + cx;
+        if (idx >= 0 && idx < grid.length && grid[idx] === 4) return true;
+      }
+    }
+    return false;
+  },
+
+  updateWall(dt) {
+    const w = State.activeWall;
+    if (!w) return;
+
+    const { grid, COLS, ROWS } = State;
+    const gridW = COLS; const gridH = ROWS; // aliases for readability
+    const growSpeed = State.speedBoostActive ? 90 : 30; // cells per second (3× with boost)
+    const grow = growSpeed * dt;
+
+    w.progressA += grow;
+    w.progressB += grow;
+
+    // Extend arm A (positive direction from origin)
+    const newLenA = Math.floor(w.progressA);
+    for (let l = w.lenA; l < newLenA; l++) {
+      const nx = w.dir === 'H' ? w.gx + l : w.gx;
+      const ny = w.dir === 'H' ? w.gy : w.gy + l;
+      if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH) {
+        w.doneA = true; break;
+      }
+      const cell = grid[ny * gridW + nx];
+      if (cell === 1 || cell === 2 || cell === 3) {
+        w.doneA = true; break;
+      }
+      grid[ny * gridW + nx] = 4; // 4 = wall being drawn
+      w.lenA = l + 1;
+      Audio.wallGrow();
+    }
+
+    // Extend arm B (negative direction from origin)
+    const newLenB = Math.floor(w.progressB);
+    for (let l = w.lenB; l < newLenB; l++) {
+      const nx = w.dir === 'H' ? w.gx - l : w.gx;
+      const ny = w.dir === 'H' ? w.gy : w.gy - l;
+      if (nx < 0 || nx >= gridW || ny < 0 || ny >= gridH) {
+        w.doneB = true; break;
+      }
+      const cell = grid[ny * gridW + nx];
+      if (cell === 1 || cell === 2 || cell === 3) {
+        w.doneB = true; break;
+      }
+      grid[ny * gridW + nx] = 4; // 4 = wall being drawn
+      w.lenB = l + 1;
+    }
+
+    // Check if both arms have reached walls/borders
+    if (!w.doneA) {
+      const nxA = w.dir === 'H' ? w.gx + w.lenA : w.gx;
+      const nyA = w.dir === 'H' ? w.gy : w.gy + w.lenA;
+      if (nxA <= 0 || nxA >= gridW || nyA <= 0 || nyA >= gridH) w.doneA = true;
+      else {
+        const cv = grid[nyA * gridW + nxA];
+        if (cv === 1 || cv === 2 || cv === 3) w.doneA = true;
+      }
+    }
+    if (!w.doneB) {
+      const nxB = w.dir === 'H' ? w.gx - w.lenB : w.gx;
+      const nyB = w.dir === 'H' ? w.gy : w.gy - w.lenB;
+      if (nxB <= 0 || nxB >= gridW || nyB <= 0 || nyB >= gridH) w.doneB = true;
+      else {
+        const cv = grid[nyB * gridW + nxB];
+        if (cv === 1 || cv === 2 || cv === 3) w.doneB = true;
+      }
+    }
+
+    if (w.doneA && w.doneB) {
+      this.finalizeWall();
+    }
+  },
+
+  finalizeWall() {
+    // Convert in-progress wall cells (4) to permanent walls (1)
+    const { grid, COLS, ROWS } = State;
+    for (let i = 0; i < COLS * ROWS; i++) {
+      if (grid[i] === 4) grid[i] = 1;
+    }
+    State.activeWall = null;
+    State.speedBoostActive = false; // consumed on wall completion
+    Audio.wallDone();
+    this.floodFill();
+    this.revealCells(false);
+    this.computeCapture();
+    UI.updateHUD();
+
+    if (State.capturedPct >= 75) {
+      this.onLevelComplete();
+    }
+  },
+
+  // Flood-fill: mark cells not containing balls as captured
+  floodFill() {
+    const { grid, COLS, ROWS } = State;
+    const gridW = COLS; const gridH = ROWS;
+    const total = gridW * gridH;
+    const visited = new Uint8Array(total);
+
+    // Mark ball positions as "ball-reachable seeds"
+    const queue = [];
+    for (const ball of State.balls) {
+      const bx = Math.floor(ball.x / State.CELL);
+      const by = Math.floor(ball.y / State.CELL);
+      const idx = by * gridW + bx;
+      if (!visited[idx] && grid[idx] === 0) {
+        visited[idx] = 1;
+        queue.push(idx);
+      }
+    }
+
+    // BFS from each ball — flood the open area reachable by balls
+    let qi = 0;
+    while (qi < queue.length) {
+      const idx = queue[qi++];
+      const x = idx % gridW;
+      const y = Math.floor(idx / gridW);
+      const neighbors = [
+        (y - 1) * gridW + x,
+        (y + 1) * gridW + x,
+        y * gridW + (x - 1),
+        y * gridW + (x + 1)
+      ];
+      for (const ni of neighbors) {
+        if (ni < 0 || ni >= total) continue;
+        if (visited[ni]) continue;
+        if (grid[ni] !== 0 && grid[ni] !== 4) continue; // walls block passage; 4=in-progress also blocks
+        visited[ni] = 1;
+        queue.push(ni);
+      }
+    }
+
+    // Any unvisited free cell that was 0 becomes captured (2)
+    let newly = false;
+    for (let i = 0; i < total; i++) {
+      if (grid[i] === 0 && !visited[i]) {
+        grid[i] = 2;
+        newly = true;
+      }
+    }
+    if (newly) Audio.capture();
+  },
+
+  computeCapture() {
+    const { grid, COLS, ROWS } = State;
+    const gridW = COLS; const gridH = ROWS;
+    let captured = 0;
+    let total = (gridW - 2) * (gridH - 2);
+    for (let y = 1; y < gridH - 1; y++) {
+      for (let x = 1; x < gridW - 1; x++) {
+        const v = grid[y * gridW + x];
+        if (v === 1 || v === 2) captured++; // walls + captured zones count
+      }
+    }
+    State.capturedPct = Math.round((captured / total) * 100);
+    // Scoring is computed at level end in onLevelComplete(), not incrementally.
+  },
+
+  onWallKilled() {
+    // Shield absorbs one wall kill
+    if (State.shieldActive) {
+      State.shieldActive = false;
+      State.activeWall = null;
+      const { grid, COLS, ROWS } = State;
+      for (let i = 0; i < COLS * ROWS; i++) { if (grid[i] === 4) grid[i] = 0; }
+      UI.toast('🛡 ' + I18n.t('shieldUsed'), 'success');
+      return;
+    }
+    State.activeWall = null;
+    // Only clear in-progress wall cells (type 4), keep completed walls (type 1)
+    const { grid, COLS, ROWS } = State;
+    for (let i = 0; i < COLS * ROWS; i++) {
+      if (grid[i] === 4) grid[i] = 0;
+    }
+    if (State.mode !== 'zen') {
+      State.lives--;
+      UI.updateHUD();
+      Audio.lifeLost();
+      UI.toast(I18n.t('lifeLost'), 'error');
+      UI.shakeCanvas();
+      if (State.lives <= 0) { this.onGameOver(); return; }
+    } else {
+      // Zen: no penalty, just a gentle shake feedback
+      UI.shakeCanvas();
+    }
+    UI.updateHUD();
+  },
+
+  onLevelComplete() {
+    State.running = false;
+    cancelAnimationFrame(this.raf);
+
+    // ── SCORING ────────────────────────────────────────────
+    // Base:  each % point above 75 = 100 pts × level
+    // Bonus: each remaining life    = 500 pts × level
+    // Extra: each % above 90        = extra 150 pts × level (precision bonus)
+    const pctAbove75  = Math.max(0, State.capturedPct - 75);
+    const pctAbove90  = Math.max(0, State.capturedPct - 90);
+    const baseScore   = pctAbove75  * 100 * State.level;
+    const precBonus   = pctAbove90  * 150 * State.level;
+    const maxLives    = this.modes[State.mode].lives;
+
+    // Life reward: +1 life (not in zen — lives don't apply)
+    let lifeBonus = 0;
+    let lifeLine = '';
+    if (State.mode !== 'zen') {
+      State.lives++;
+      lifeBonus = 500 * State.level;
+      lifeLine = State.lives > maxLives
+        ? I18n.t('bonusLife')
+        : '❤ +1 ' + I18n.t('lives');
+      UI.toast(lifeLine, 'success');
+    }
+    State.score += baseScore + precBonus + lifeBonus;
+
+    const isRecord = Scores.add(State.mode, State.level, State.score, State.capturedPct);
+    Audio.levelUp();
+
+    // Full reveal animation
+    this.revealFull(() => {
+      UI.showLevelSplash(isRecord);
+    });
+  },
+
+  // Animate full reveal of the landscape
+  revealFull(cb) {
+    const W = this.maskCanvas.width;
+    const H = this.maskCanvas.height;
+    const mctx = this.maskCtx;
+
+    const clearMask = () => {
+      mctx.globalCompositeOperation = 'destination-out';
+      mctx.fillStyle = 'rgba(0,0,0,1)';
+      mctx.fillRect(0, 0, W, H);
+      mctx.globalCompositeOperation = 'source-over';
+    };
+
+    if (!State.animOn) {
+      clearMask();
+      this.render();
+      setTimeout(cb, 100);
+      return;
+    }
+
+    let alpha = 1;
+    const step = () => {
+      alpha -= 0.045;
+      if (alpha <= 0) {
+        clearMask();
+        this.render();
+        setTimeout(cb, 380);
+        return;
+      }
+      // Erode the mask progressively
+      mctx.globalCompositeOperation = 'destination-out';
+      mctx.fillStyle = 'rgba(0,0,0,0.045)';
+      mctx.fillRect(0, 0, W, H);
+      mctx.globalCompositeOperation = 'source-over';
+      this.render();
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  },
+
+  nextLevel() {
+    State.level++;
+    this.landscapeIdx = (this.landscapeIdx + 1) % Landscapes.length;
+    requestAnimationFrame(() => {
+      this.resize();
+      this.startLevel();
+    });
+    Prefs.save();
+  },
+
+  // Add one extra ball (for power-up +1 ball)
+  addBall() {
+    const cfg = this.modes[State.mode];
+    const speed = Math.min(cfg.baseSpeed + (State.level - 1) * cfg.speedIncrement, cfg.maxSpeed);
+    const { COLS, ROWS, CELL, grid } = State;
+    const margin = 5;
+
+    // Collect all free cells (type 0 = not captured, not wall)
+    const freeCells = [];
+    for (let y = margin; y < ROWS - margin; y++) {
+      for (let x = margin; x < COLS - margin; x++) {
+        if (grid[y * COLS + x] === 0) freeCells.push({ x, y });
+      }
+    }
+    if (freeCells.length === 0) return; // no room — don't add
+
+    const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const ballTypes = ['tennis', 'soccer', 'basket', 'volley', 'billiard', 'beach'];
+    State.balls.push({
+      x: cell.x * CELL + CELL / 2, y: cell.y * CELL + CELL / 2,
+      vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      r: CELL * 1.05,
+      type: ballTypes[Math.floor(Math.random() * ballTypes.length)],
+      angle: Math.random() * Math.PI * 2,
+      trail: []
+    });
+  },
+
+  onGameOver() {
+    State.running = false;
+    cancelAnimationFrame(this.raf);
+    Scores.add(State.mode, State.level, State.score, State.capturedPct);
+    Audio.gameOver();
+
+    document.getElementById('goLevel').textContent = State.level;
+    document.getElementById('goScore').textContent = State.score;
+    document.getElementById('gameoverSub').textContent = I18n.t('gameOverLives');
+    document.getElementById('gameoverOverlay').classList.remove('hidden');
+    if (State.animOn) {
+      Confetti.burst(document.getElementById('confettiCanvas'), false);
+    }
+  },
+
+  abandon() {
+    State.running = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    UI.backToMenu();
+  },
+
+  togglePause() {
+    if (!State.running && !State.paused) return;
+    State.paused = !State.paused;
+    document.getElementById('pauseOverlay').classList.toggle('hidden', !State.paused);
+    const ico = document.getElementById('btnPauseIcon');
+    if (ico) ico.textContent = State.paused ? '▶' : '⏸';
+    if (State.paused) {
+      // Snapshot game canvas into blur background
+      const src = document.getElementById('gameCanvas');
+      const dst = document.getElementById('pauseBlurCanvas');
+      dst.width  = src.clientWidth  || src.width;
+      dst.height = src.clientHeight || src.height;
+      dst.getContext('2d').drawImage(src, 0, 0, dst.width, dst.height);
+    }
+  },
+
+  // ── INPUT ────────────────────────────────────────────────
+  // Convert screen coords (CSS px, relative to canvas top-left corner) → logical px.
+  // canvas.width=960, CSS display width = 960*scale, so logical = screen / scale.
+  screenToLogical(screenX, screenY) {
+    return {
+      lx: screenX / State.scale,
+      ly: screenY / State.scale,
+    };
+  },
+
+  onCanvasClick(e) {
+    e.preventDefault();
+    if (!State.running || State.paused) return;
+    if (State.activeWall) return; // Already drawing
+
+    const rect = this.canvas.getBoundingClientRect();
+    const { lx, ly } = this.screenToLogical(e.clientX - rect.left, e.clientY - rect.top);
+    this.startWall(lx, ly);
+  },
+
+  onRightClick(e) {
+    e.preventDefault();
+    if (!State.running || State.paused) return;
+    if (State.activeWall) return;
+    // Toggle direction
+    State.wallDir = State.wallDir === 'H' ? 'V' : 'H';
+    UI.updateDirIndicator();
+    Audio.click();
+  },
+
+  onMouseMove(e) {
+    if (!State.running || State.paused) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const { lx, ly } = this.screenToLogical(e.clientX - rect.left, e.clientY - rect.top);
+    State.mouseX = lx;
+    State.mouseY = ly;
+  },
+
+  _touchStartX: 0,
+  _touchStartY: 0,
+  onTouch(e) {
+    e.preventDefault();
+    if (!State.running || State.paused) return;
+    const t = e.touches[0];
+    const rect = this.canvas.getBoundingClientRect();
+    const { lx, ly } = this.screenToLogical(t.clientX - rect.left, t.clientY - rect.top);
+    this._touchStartX = lx;
+    this._touchStartY = ly;
+    // Long press (400ms) = switch direction
+    if (this._touchTimer) clearTimeout(this._touchTimer);
+    this._touchTimer = setTimeout(() => {
+      if (!State.activeWall) {
+        State.wallDir = State.wallDir === 'H' ? 'V' : 'H';
+        UI.updateDirIndicator();
+        Audio.click();
+        UI.toast(I18n.t(State.wallDir === 'H' ? 'horizontal' : 'vertical'), 'success');
+      }
+      this._touchTimer = null;
+    }, 400);
+  },
+  _touchTimer: null,
+  onTouchEnd(e) {
+    e.preventDefault();
+    if (this._touchTimer) { clearTimeout(this._touchTimer); this._touchTimer = null; }
+    if (!State.running || State.paused) return;
+    if (State.activeWall) return;
+    const rect = this.canvas.getBoundingClientRect();
+    const t = e.changedTouches[0];
+    const { lx, ly } = this.screenToLogical(t.clientX - rect.left, t.clientY - rect.top);
+    const dx = Math.abs(lx - this._touchStartX);
+    const dy = Math.abs(ly - this._touchStartY);
+    // 12 logical px tolerance (= ~1.5 cells)
+    if (dx < 12 && dy < 12) {
+      this.startWall(this._touchStartX, this._touchStartY);
+    }
+  },
+
+  startWall(px, py) {
+    const { CELL, COLS, ROWS, grid } = State;
+    const gx = Math.floor(px / CELL);
+    const gy = Math.floor(py / CELL);
+
+    // Can't start on an existing wall or outside
+    if (gx <= 0 || gx >= COLS - 1 || gy <= 0 || gy >= ROWS - 1) return;
+    if (grid[gy * COLS + gx] !== 0) return; // Can't start on wall or captured area
+
+    // Mark origin cell
+    State.grid[gy * State.COLS + gx] = 4;
+    State.activeWall = {
+      gx, gy,
+      dir: State.wallDir,
+      lenA: 1, lenB: 1,  // start from 1 so arms go outward from origin
+      progressA: 1, progressB: 1,
+      doneA: false, doneB: false
+    };
+    Audio.wallStart();
+  },
+
+  // ── RENDER ───────────────────────────────────────────────
+  render() {
+    const ctx = this.ctx;
+    const { canvasW, canvasH, CELL, COLS, ROWS, grid } = State;
+
+    ctx.clearRect(0, 0, canvasW, canvasH);
+
+    // 1. Draw landscape through mask (all in logical px)
+    ctx.drawImage(this.landscapeCanvas, 0, 0);
+
+    // 2. Dark overlay for unrevealed areas (mask)
+    ctx.save();
+    ctx.globalAlpha = 0.85;
+    ctx.drawImage(this.maskCanvas, 0, 0);
+    ctx.restore();
+
+    // 3. Draw walls (type 1=permanent, type 3=border, type 4=building)
+    const wallH = getComputedStyle(document.documentElement).getPropertyValue('--wall-h').trim();
+    const wallV = getComputedStyle(document.documentElement).getPropertyValue('--wall-v').trim();
+    const wallColor = (State.activeWall && State.activeWall.dir === 'V') ? wallV : wallH;
+
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const v = grid[y * COLS + x];
+        if (v === 1) {
+          ctx.fillStyle = wallColor;
+          ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        } else if (v === 4) {
+          ctx.fillStyle = State.activeWall && State.activeWall.dir === 'V' ? wallV : wallH;
+          ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        } else if (v === 3) {
+          ctx.fillStyle = 'rgba(0,212,170,0.6)';
+          ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+        }
+      }
+    }
+
+    // 4. Cursor preview line (logical coords)
+    if (!State.activeWall && State.mouseX !== undefined) {
+      const mgx = Math.floor(State.mouseX / CELL);
+      const mgy = Math.floor(State.mouseY / CELL);
+      if (mgx > 0 && mgx < COLS - 1 && mgy > 0 && mgy < ROWS - 1 && grid[mgy * COLS + mgx] === 0) {
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = State.wallDir === 'H' ? wallH : wallV;
+        if (State.wallDir === 'H') {
+          ctx.fillRect(0, mgy * CELL, canvasW, CELL);
+        } else {
+          ctx.fillRect(mgx * CELL, 0, CELL, canvasH);
+        }
+        ctx.restore();
+      }
+    }
+
+    // 5. Active wall highlight with glow
+    if (State.activeWall) {
+      const w = State.activeWall;
+      ctx.save();
+      ctx.shadowBlur = 14;
+      ctx.shadowColor = w.dir === 'H' ? wallH : wallV;
+      ctx.fillStyle = w.dir === 'H' ? wallH : wallV;
+      if (w.dir === 'H') {
+        const x1 = (w.gx - w.lenB + 1) * CELL;
+        const x2 = (w.gx + w.lenA - 1) * CELL + CELL;
+        ctx.fillRect(x1, w.gy * CELL, x2 - x1, CELL);
+      } else {
+        const y1 = (w.gy - w.lenB + 1) * CELL;
+        const y2 = (w.gy + w.lenA - 1) * CELL + CELL;
+        ctx.fillRect(w.gx * CELL, y1, CELL, y2 - y1);
+      }
+      ctx.restore();
+    }
+
+    // 6a. Draw power-ups (under balls)
+    PowerUps.draw(ctx);
+
+    // 6. Draw balls
+    for (const ball of State.balls) {
+      const r = ball.r;
+      const a = ball.angle || 0;
+
+      // Comet trail — tapered ellipse along movement direction
+      if (ball.trail.length >= 2) {
+        const tail = ball.trail[0];
+        const dx = ball.x - tail.x;
+        const dy = ball.y - tail.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const trailLen = Math.min(dist, r * 5);
+        const angle = Math.atan2(dy, dx);
+        const color = Balls.trailColor(ball.type);
+
+        ctx.save();
+        ctx.translate(ball.x, ball.y);
+        ctx.rotate(angle);
+
+        // Comet tail gradient
+        const grd = ctx.createLinearGradient(-trailLen, 0, 0, 0);
+        grd.addColorStop(0, color + '00');
+        grd.addColorStop(0.6, color + '55');
+        grd.addColorStop(1, color + 'cc');
+        ctx.beginPath();
+        ctx.ellipse(-trailLen / 2, 0, trailLen / 2, r * 0.38, 0, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Glow behind ball
+      ctx.save();
+      ctx.shadowBlur = 16;
+      ctx.shadowColor = Balls.glowColor(ball.type);
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, r * 1.15, 0, Math.PI * 2);
+      ctx.fillStyle = Balls.glowColor(ball.type);
+      ctx.globalAlpha = 0.22;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.restore();
+
+      // Draw the ball itself (rotated)
+      ctx.save();
+      ctx.translate(ball.x, ball.y);
+      ctx.rotate(a);
+      Balls.draw(ctx, ball.type, r);
+      ctx.restore();
+    }
+
+    // 6b. Freeze overlay — blue tint on entire canvas
+    if (State.freezeTimer > 0) {
+      const alpha = Math.min(0.22, State.freezeTimer * 0.07);
+      ctx.save();
+      ctx.fillStyle = 'rgba(116,215,247,' + alpha + ')';
+      ctx.fillRect(0, 0, canvasW, canvasH);
+      // Ice crystals on each ball
+      for (const ball of State.balls) {
+        ctx.save();
+        ctx.translate(ball.x, ball.y);
+        ctx.strokeStyle = 'rgba(180,240,255,0.75)';
+        ctx.lineWidth = 1.2;
+        for (let i = 0; i < 6; i++) {
+          const a = (i / 6) * Math.PI * 2;
+          const len = ball.r * 1.3;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len);
+          // Side branches
+          ctx.moveTo(Math.cos(a) * len * 0.5, Math.sin(a) * len * 0.5);
+          ctx.lineTo(Math.cos(a + 0.5) * len * 0.3, Math.sin(a + 0.5) * len * 0.3);
+          ctx.moveTo(Math.cos(a) * len * 0.5, Math.sin(a) * len * 0.5);
+          ctx.lineTo(Math.cos(a - 0.5) * len * 0.3, Math.sin(a - 0.5) * len * 0.3);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    // 6c. Chaos overlay — flickering pink vignette
+    if (State.chaosActive) {
+      const flicker = 0.06 + Math.random() * 0.08;
+      ctx.save();
+      const vign = ctx.createRadialGradient(
+        canvasW / 2, canvasH / 2, canvasH * 0.2,
+        canvasW / 2, canvasH / 2, canvasW * 0.7
+      );
+      vign.addColorStop(0, 'rgba(253,121,168,0)');
+      vign.addColorStop(1, 'rgba(253,121,168,' + flicker + ')');
+      ctx.fillStyle = vign;
+      ctx.fillRect(0, 0, canvasW, canvasH);
+      ctx.restore();
+    }
+
+    // 7. Progress bar overlay (bottom strip) — in logical px
+    const pct = State.capturedPct / 100;
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    ctx.fillStyle = '#00d4aa';
+    ctx.fillRect(0, canvasH - 4, canvasW * pct, 4);
+    // Target line at 75%
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#ffd93d';
+    ctx.fillRect(canvasW * 0.75, canvasH - 4, 2, 4);
+    ctx.restore();
+  },
+
+  // ── WALL COLLISION (during active wall) for grid-based check ─
+  // Checks if any wall cell in the building wall overlaps a ball
+};
+
+// ============================================================
+// POWER-UPS
+// ============================================================
+const POWERUP_INTERVAL = 15; // seconds between spawns
+const POWERUP_TYPES = {
+  clock:  { icon: '⏱', color: '#ffd93d', label: '+30s',       labelKey: 'puClock'  },
+  remove: { icon: '💨', color: '#ff6b6b', label: '-1 ball',    labelKey: 'puRemove' },
+  add:    { icon: '➕', color: '#ff9f43', label: '+1 ball',    labelKey: 'puAdd'    },
+  shield: { icon: '🛡', color: '#a29bfe', label: 'Shield',     labelKey: 'puShield' },
+  speed:  { icon: '⚡', color: '#00d4aa', label: 'Speed wall',  labelKey: 'puSpeed'  },
+  freeze: { icon: '❄', color: '#74d7f7', label: 'Freeze 3s',  labelKey: 'puFreeze' },
+  chaos:  { icon: '🔀', color: '#fd79a8', label: 'Chaos!',     labelKey: 'puChaos'  },
+};
+
+const PowerUps = {
+  // Spawn a random power-up in a free cell
+  spawn() {
+    const { grid, COLS, ROWS } = State;
+    const freeCells = [];
+    for (let y = 2; y < ROWS - 2; y++) {
+      for (let x = 2; x < COLS - 2; x++) {
+        if (grid[y * COLS + x] === 0) freeCells.push({ x, y });
+      }
+    }
+    if (freeCells.length === 0) return;
+    const cell = freeCells[Math.floor(Math.random() * freeCells.length)];
+    const types = Object.keys(POWERUP_TYPES);
+    // Don't spawn clock in zen mode
+    const eligible = State.mode === 'zen' ? types.filter(t => t !== 'clock') : types;
+    const type = eligible[Math.floor(Math.random() * eligible.length)];
+    State.powerups.push({ gx: cell.x, gy: cell.y, type, anim: 0 });
+  },
+
+  // Update animations and check collection
+  update(dt) {
+    // Tick spawn timer
+    State.powerupTimer += dt;
+    if (State.powerupTimer >= POWERUP_INTERVAL) {
+      State.powerupTimer = 0;
+      this.spawn();
+    }
+    // Animate
+    for (const p of State.powerups) p.anim = (p.anim + dt * 2) % (Math.PI * 2);
+    // Check collection: if a powerup cell is now captured (type 2), collect it
+    const { grid, COLS } = State;
+    const collected = [];
+    for (const p of State.powerups) {
+      if (grid[p.gy * COLS + p.gx] === 2) collected.push(p);
+    }
+    for (const p of collected) {
+      State.powerups.splice(State.powerups.indexOf(p), 1);
+      this.collect(p.type);
+    }
+  },
+
+  collect(type) {
+    Audio.levelUp();
+    const info = POWERUP_TYPES[type];
+    UI.toast(info.icon + ' ' + I18n.t(info.labelKey), 'success');
+    switch (type) {
+      case 'clock':
+        if (State.mode !== 'zen') {
+          State.timeLeft = Math.min(State.timeLeft + 30, 999);
+          State.timerWarning = State.timeLeft < 30;
+          if (!State.timerWarning)
+            document.getElementById('hudTimerBlock').classList.remove('timer-warning');
+        }
+        break;
+      case 'remove':
+        if (State.balls.length > 1) {
+          const idx = Math.floor(Math.random() * State.balls.length);
+          State.balls.splice(idx, 1);
+        }
+        break;
+      case 'add':
+        Game.addBall();
+        break;
+      case 'shield':
+        State.shieldActive = true;
+        break;
+      case 'speed':
+        State.speedBoostActive = true;
+        break;
+      case 'freeze':
+        State.freezeTimer = 3;
+        Audio.freeze();
+        break;
+      case 'chaos':
+        State.chaosActive = true;
+        State.chaosTick   = 0;
+        Audio.chaos();
+        for (const b of State.balls) {
+          b.vx = -b.vx;
+          b.vy = -b.vy;
+        }
+        // Auto-cancel after 5 seconds
+        setTimeout(() => {
+          State.chaosActive = false;
+          State.chaosTick   = 0;
+        }, 5000);
+        break;
+    }
+  },
+
+  // Draw all power-ups on the canvas as illustrated icons
+  draw(ctx) {
+    const { CELL } = State;
+    for (const p of State.powerups) {
+      const info = POWERUP_TYPES[p.type];
+      const cx = p.gx * CELL + CELL / 2;
+      const cy = p.gy * CELL + CELL / 2;
+      const bounce = Math.sin(p.anim) * 2.5;
+      const pulse  = 1 + Math.sin(p.anim * 1.8) * 0.07;
+      const r = CELL * 1.5 * pulse; // icon radius
+
+      ctx.save();
+      ctx.translate(cx, cy + bounce);
+
+      // Outer glow halo
+      const halo = ctx.createRadialGradient(0, 0, r * 0.4, 0, 0, r * 1.6);
+      halo.addColorStop(0, info.color + '44');
+      halo.addColorStop(1, info.color + '00');
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.6, 0, Math.PI * 2);
+      ctx.fillStyle = halo;
+      ctx.fill();
+
+      // Background pill
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fillStyle = '#13161d';
+      ctx.fill();
+      ctx.strokeStyle = info.color;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Illustration (drawn per type)
+      ctx.strokeStyle = info.color;
+      ctx.fillStyle   = info.color;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+
+      switch (p.type) {
+
+        case 'clock': { // hourglass
+          const s = r * 0.52;
+          ctx.lineWidth = 1.4;
+          // Frame
+          ctx.beginPath();
+          ctx.moveTo(-s, -s); ctx.lineTo(s, -s);      // top bar
+          ctx.moveTo(-s,  s); ctx.lineTo(s,  s);      // bottom bar
+          ctx.stroke();
+          // Top triangle (empty)
+          ctx.beginPath();
+          ctx.moveTo(-s, -s); ctx.lineTo(s, -s); ctx.lineTo(0, 0); ctx.closePath();
+          ctx.globalAlpha = 0.25; ctx.fill(); ctx.globalAlpha = 1; ctx.stroke();
+          // Bottom triangle (filled = sand)
+          ctx.beginPath();
+          ctx.moveTo(0, 0); ctx.lineTo(-s, s); ctx.lineTo(s, s); ctx.closePath();
+          ctx.fill();
+          // Sand drop
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.09, 0, Math.PI * 2);
+          ctx.fillStyle = '#fff'; ctx.fill();
+          break;
+        }
+
+        case 'remove': { // ball with X through it
+          const s = r * 0.48;
+          // Ball
+          ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.stroke();
+          // Seams
+          ctx.globalAlpha = 0.45;
+          ctx.beginPath(); ctx.moveTo(-s, 0); ctx.lineTo(s, 0); ctx.stroke();
+          ctx.globalAlpha = 1;
+          // Red X
+          const xs = s * 0.75;
+          ctx.strokeStyle = '#ff4444';
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(-xs, -xs); ctx.lineTo(xs, xs);
+          ctx.moveTo(xs, -xs);  ctx.lineTo(-xs, xs);
+          ctx.stroke();
+          break;
+        }
+
+        case 'add': { // ball with + on it
+          const s = r * 0.48;
+          ctx.lineWidth = 1.6;
+          ctx.beginPath(); ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.stroke();
+          // + symbol
+          const ps = s * 0.55;
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.moveTo(0, -ps); ctx.lineTo(0, ps);
+          ctx.moveTo(-ps, 0); ctx.lineTo(ps, 0);
+          ctx.stroke();
+          break;
+        }
+
+        case 'shield': { // classic shield shape with lightning
+          const s = r * 0.52;
+          ctx.lineWidth = 1.6;
+          // Shield outline
+          ctx.beginPath();
+          ctx.moveTo(0, -s);
+          ctx.lineTo(s * 0.9, -s * 0.4);
+          ctx.quadraticCurveTo(s * 0.9, s * 0.5, 0, s);
+          ctx.quadraticCurveTo(-s * 0.9, s * 0.5, -s * 0.9, -s * 0.4);
+          ctx.closePath();
+          ctx.globalAlpha = 0.3; ctx.fill(); ctx.globalAlpha = 1;
+          ctx.stroke();
+          // Lightning bolt inside
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(s * 0.2, -s * 0.5);
+          ctx.lineTo(-s * 0.15, 0);
+          ctx.lineTo(s * 0.12, 0);
+          ctx.lineTo(-s * 0.2, s * 0.55);
+          ctx.stroke();
+          break;
+        }
+
+        case 'speed': { // two parallel wall lines with speed arrows
+          const s = r * 0.5;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-s * 0.1, -s * 0.7); ctx.lineTo(-s * 0.1, s * 0.7);
+          ctx.moveTo( s * 0.2, -s * 0.7); ctx.lineTo( s * 0.2, s * 0.7);
+          ctx.stroke();
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#ffffff';
+          const aw = s * 0.55;
+          for (const yOff of [-s * 0.3, 0, s * 0.3]) {
+            ctx.beginPath();
+            ctx.moveTo(s * 0.35, yOff); ctx.lineTo(s * 0.35 + aw, yOff); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(s * 0.35 + aw * 0.6, yOff - s * 0.18);
+            ctx.lineTo(s * 0.35 + aw, yOff);
+            ctx.lineTo(s * 0.35 + aw * 0.6, yOff + s * 0.18);
+            ctx.stroke();
+          }
+          break;
+        }
+
+        case 'freeze': { // snowflake
+          const s = r * 0.52;
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = '#74d7f7';
+          // 6 main arms
+          for (let i = 0; i < 6; i++) {
+            const a = (i / 6) * Math.PI * 2;
+            const ex = Math.cos(a) * s, ey = Math.sin(a) * s;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(ex, ey); ctx.stroke();
+            // Two side branches at 60% along each arm
+            const bx = ex * 0.55, by = ey * 0.55;
+            const perp = a + Math.PI / 2;
+            const bl = s * 0.3;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx + Math.cos(perp) * bl, by + Math.sin(perp) * bl);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx - Math.cos(perp) * bl, by - Math.sin(perp) * bl);
+            ctx.stroke();
+          }
+          // Center dot
+          ctx.beginPath(); ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2);
+          ctx.fillStyle = '#74d7f7'; ctx.fill();
+          break;
+        }
+
+        case 'chaos': { // four arrows pointing in random directions
+          const s = r * 0.48;
+          ctx.lineWidth = 1.8;
+          ctx.strokeStyle = '#fd79a8';
+          // Draw 4 arrows at 90° intervals, each offset from center
+          const dirs = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
+          const offsets = [1, -1, 1, -1]; // alternate to make it look chaotic
+          dirs.forEach((a, idx) => {
+            const ox = Math.cos(a + 0.4 * offsets[idx]) * s * 0.3;
+            const oy = Math.sin(a + 0.4 * offsets[idx]) * s * 0.3;
+            const ex = ox + Math.cos(a) * s * 0.55;
+            const ey = oy + Math.sin(a) * s * 0.55;
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ex, ey); ctx.stroke();
+            // Arrowhead
+            const headA = s * 0.22;
+            ctx.beginPath();
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex + Math.cos(a + 2.5) * headA, ey + Math.sin(a + 2.5) * headA);
+            ctx.moveTo(ex, ey);
+            ctx.lineTo(ex + Math.cos(a - 2.5) * headA, ey + Math.sin(a - 2.5) * headA);
+            ctx.stroke();
+          });
+          break;
+        }
+      }
+
+      ctx.restore();
+    }
+  },
+
+  // Reset on new level
+  reset() {
+    State.powerups        = [];
+    State.powerupTimer    = 0;
+    State.shieldActive    = false;
+    State.speedBoostActive = false;
+    State.freezeTimer     = 0;
+    State.chaosActive     = false;
+    State.chaosTick       = 0;
+  }
+};
+
+// ============================================================
+// BALLS — canvas-drawn sports balls, all same radius, all animated
+// draw(ctx, type, r) assumes ctx already translated to ball center
+// ============================================================
+const Balls = {
+  // Trail color per type
+  trailColor(type) {
+    const c = { tennis:'#ccff00', soccer:'#ffffff', basket:'#ff6a00',
+                volley:'#ffdd44', billiard:'#ff4444', beach:'#ff66cc' };
+    return c[type] || '#aaffff';
+  },
+  // Glow color per type
+  glowColor(type) {
+    const c = { tennis:'#aaee00', soccer:'#88aaff', basket:'#ff7722',
+                volley:'#ffcc00', billiard:'#ff3333', beach:'#ff44bb' };
+    return c[type] || '#00d4aa';
+  },
+
+  draw(ctx, type, r) {
+    switch(type) {
+      case 'tennis':   this.tennis(ctx, r);   break;
+      case 'soccer':   this.soccer(ctx, r);   break;
+      case 'basket':   this.basket(ctx, r);   break;
+      case 'volley':   this.volley(ctx, r);   break;
+      case 'billiard': this.billiard(ctx, r); break;
+      case 'beach':    this.beach(ctx, r);    break;
+      default:         this.generic(ctx, r);
+    }
+  },
+
+  // ── TENNIS BALL ─────────────────────────────────────────
+  tennis(ctx, r) {
+    // Felt green-yellow base
+    const g = ctx.createRadialGradient(-r*0.3,-r*0.3,0, 0,0,r);
+    g.addColorStop(0,'#e8ff70'); g.addColorStop(0.6,'#ccee00'); g.addColorStop(1,'#8aaa00');
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    // White seam curves (two arcs, perpendicular)
+    ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=r*0.14; ctx.lineCap='round';
+    ctx.beginPath();
+    ctx.moveTo(-r*0.6, -r*0.3);
+    ctx.bezierCurveTo(-r*0.1, r*0.5,  r*0.1, -r*0.5,  r*0.6, r*0.3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-r*0.6, r*0.3);
+    ctx.bezierCurveTo(-r*0.1,-r*0.5,  r*0.1, r*0.5,  r*0.6,-r*0.3);
+    ctx.stroke();
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.28,-r*0.28,r*0.15,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+  },
+
+  // ── SOCCER BALL ─────────────────────────────────────────
+  soccer(ctx, r) {
+    // White base
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.fillStyle='#f0f0f0'; ctx.fill();
+    ctx.strokeStyle='#ccc'; ctx.lineWidth=0.5; ctx.stroke();
+    // Black pentagon patches (simplified: center + 5 around)
+    ctx.fillStyle='#1a1a1a';
+    // Center pentagon
+    this._pentagon(ctx, 0, 0, r*0.28);
+    // 5 surrounding
+    for(let i=0;i<5;i++){
+      const ang = (i/5)*Math.PI*2 - Math.PI/2;
+      this._pentagon(ctx, Math.cos(ang)*r*0.52, Math.sin(ang)*r*0.52, r*0.2);
+    }
+    // Seam lines from center to each patch
+    ctx.strokeStyle='#888'; ctx.lineWidth=r*0.06;
+    for(let i=0;i<5;i++){
+      const ang=(i/5)*Math.PI*2 - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*r*0.28, Math.sin(ang)*r*0.28);
+      ctx.lineTo(Math.cos(ang)*r*0.5, Math.sin(ang)*r*0.5);
+      ctx.stroke();
+    }
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.25,-r*0.3,r*0.18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.fill();
+  },
+  _pentagon(ctx,cx,cy,pr){
+    ctx.beginPath();
+    for(let i=0;i<5;i++){
+      const a=(i/5)*Math.PI*2-Math.PI/2;
+      i===0 ? ctx.moveTo(cx+Math.cos(a)*pr,cy+Math.sin(a)*pr)
+             : ctx.lineTo(cx+Math.cos(a)*pr,cy+Math.sin(a)*pr);
+    }
+    ctx.closePath(); ctx.fill();
+  },
+
+  // ── BASKETBALL ──────────────────────────────────────────
+  basket(ctx, r) {
+    ctx.save();
+    // Clip everything to the ball circle
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.clip();
+    // Orange gradient base
+    const g = ctx.createRadialGradient(-r*0.3,-r*0.3,0, 0,0,r);
+    g.addColorStop(0,'#ff9944'); g.addColorStop(0.5,'#e06010'); g.addColorStop(1,'#8b3000');
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    // Black seam lines
+    ctx.strokeStyle='#1a0a00'; ctx.lineWidth=r*0.1; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(-r,0); ctx.lineTo(r,0); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,r*0.8,Math.PI*0.1,Math.PI*0.9); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,r*0.8,-Math.PI*0.1,-Math.PI*0.9,true); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-r*0.05,-r); ctx.bezierCurveTo(-r*0.55,-r*0.4,-r*0.55,r*0.4,-r*0.05,r); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(r*0.05,-r); ctx.bezierCurveTo(r*0.55,-r*0.4,r*0.55,r*0.4,r*0.05,r); ctx.stroke();
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.28,-r*0.28,r*0.18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.fill();
+    ctx.restore();
+  },
+
+  // ── VOLLEYBALL ──────────────────────────────────────────
+  volley(ctx, r) {
+    // White base
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fillStyle='#fafafa'; ctx.fill();
+    // 3 colored panels
+    const panels=[['#3355cc',0],['#ffcc00',Math.PI*2/3],['#cc2222',Math.PI*4/3]];
+    panels.forEach(([col,startAng])=>{
+      ctx.save();
+      ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.clip();
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r,startAng,startAng+Math.PI*2/3);
+      ctx.closePath();
+      ctx.fillStyle=col; ctx.globalAlpha=0.7; ctx.fill();
+      ctx.restore();
+    });
+    // Panel divider lines
+    ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=r*0.08;
+    for(let i=0;i<3;i++){
+      const a=(i/3)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r); ctx.stroke();
+    }
+    // Outer ring
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=r*0.08; ctx.stroke();
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.25,-r*0.3,r*0.18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.fill();
+  },
+
+  // ── BILLIARD BALL ───────────────────────────────────────
+  billiard(ctx, r) {
+    const g = ctx.createRadialGradient(-r*0.3,-r*0.3,0, 0,0,r);
+    g.addColorStop(0,'#ff6666'); g.addColorStop(0.5,'#cc0000'); g.addColorStop(1,'#660000');
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+    // White circle with number
+    ctx.beginPath(); ctx.arc(0,0,r*0.42,0,Math.PI*2);
+    ctx.fillStyle='white'; ctx.fill();
+    ctx.fillStyle='#cc0000'; ctx.font='bold '+Math.round(r*0.5)+'px sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('3',0,r*0.05);
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.28,-r*0.28,r*0.18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fill();
+  },
+
+  // ── BEACH BALL ──────────────────────────────────────────
+  beach(ctx, r) {
+    // 6 alternating color segments
+    const cols=['#ff4499','#ffff00','#44aaff','#ff6600','#44ff66','#cc44ff'];
+    for(let i=0;i<6;i++){
+      const a1=(i/6)*Math.PI*2 - Math.PI/2;
+      const a2=((i+1)/6)*Math.PI*2 - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.arc(0,0,r,a1,a2);
+      ctx.closePath();
+      ctx.fillStyle=cols[i]; ctx.fill();
+    }
+    // White center circle
+    ctx.beginPath(); ctx.arc(0,0,r*0.08,0,Math.PI*2);
+    ctx.fillStyle='white'; ctx.fill();
+    // Outer stroke
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=r*0.06; ctx.stroke();
+    // Specular
+    ctx.beginPath(); ctx.arc(-r*0.25,-r*0.3,r*0.2,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.fill();
+  },
+
+  // ── GENERIC (fallback) ───────────────────────────────────
+  generic(ctx, r) {
+    const g = ctx.createRadialGradient(-r*0.3,-r*0.3,0, 0,0,r);
+    g.addColorStop(0,'#fff'); g.addColorStop(0.4,'#00d4aa'); g.addColorStop(1,'#006655');
+    ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.fillStyle=g; ctx.fill();
+  }
+};
+
+// ============================================================
+// CONFETTI
+// ============================================================
+const Confetti = {
+  particles: [],
+  raf: null,
+
+  burst(canvas, win = true) {
+    if (!State.animOn) return;
+    // Canvas is position:fixed over full viewport
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    this.particles = [];
+    const colors = win
+      ? ['#00d4aa', '#ffd93d', '#ff6b6b', '#a29bfe', '#fd79a8', '#55efc4', '#fdcb6e']
+      : ['#636e72', '#b2bec3', '#74b9ff'];
+
+    const count = win ? 120 : 40;
+    for (let i = 0; i < count; i++) {
+      this.particles.push({
+        x: canvas.width * (0.1 + Math.random() * 0.8),
+        y: canvas.height * 0.35,
+        vx: (Math.random() - 0.5) * 400,
+        vy: -200 - Math.random() * 300,
+        r: 4 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rot: Math.random() * Math.PI * 2,
+        rotV: (Math.random() - 0.5) * 8,
+        shape: Math.random() > 0.5 ? 'rect' : 'circle',
+        life: 1
+      });
+    }
+    if (this.raf) cancelAnimationFrame(this.raf);
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+      for (const p of this.particles) {
+        p.x += p.vx * 0.016;
+        p.y += p.vy * 0.016;
+        p.vy += 400 * 0.016; // gravity
+        p.rot += p.rotV * 0.016;
+        p.vx *= 0.99;
+        p.life -= 0.012;
+        if (p.life <= 0 || p.y > canvas.height) continue;
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, p.life * 2);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'rect') {
+          ctx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.r * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+      if (alive) this.raf = requestAnimationFrame(loop);
+      else { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    };
+    this.raf = requestAnimationFrame(loop);
+  }
+};
+
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+const UI = {
+  selectedMode: 'easy',
+  scoresCurrentMode: 'easy',
+
+  init() {
+    Game.init();
+    Prefs.load();
+    Prefs.apply();
+    I18n.detect();
+    // Override with saved pref lang
+    I18n.lang = Prefs.data.lang || I18n.lang;
+    this.applyTheme(Prefs.data.theme || 'dark');
+    this.selectedMode = Prefs.data.mode || 'easy';
+    State.mode = this.selectedMode;
+    this.highlightModeBtn(this.selectedMode);
+    // Sound button icon
+    const sb = document.getElementById('soundToggleBtn');
+    if (sb) {
+      sb.textContent = State.soundOn ? '🔊' : '🔇';
+      sb.classList.toggle('muted', !State.soundOn);
+    }
+    // Lang select value
+    const ls = document.getElementById('langSelect');
+    if (ls) ls.value = I18n.lang;
+    I18n.apply();
+  },
+
+  showGame() {
+    document.getElementById('welcomeScreen').classList.add('hidden');
+    document.getElementById('scoresScreen').classList.add('hidden');
+    document.getElementById('gameArea').classList.remove('hidden');
+    // btnPause is inside #hud — visible whenever #gameArea is visible
+    document.body.classList.remove('at-welcome');
+  },
+
+  backToMenu() {
+    if (Game.raf) cancelAnimationFrame(Game.raf);
+    State.running = false;
+    document.getElementById('gameArea').classList.add('hidden');
+    document.getElementById('scoresScreen').classList.add('hidden');
+    document.getElementById('welcomeScreen').classList.remove('hidden');
+    // btnPause is inside #hud — hidden with #gameArea automatically
+    document.body.classList.add('at-welcome');
+  },
+
+  _scoresFromGame: false,
+
+  showScores() {
+    this._scoresFromGame = State.running || State.paused;
+    document.getElementById('welcomeScreen').classList.add('hidden');
+    if (!this._scoresFromGame) document.getElementById('gameArea').classList.add('hidden');
+    document.getElementById('scoresScreen').classList.remove('hidden');
+    const backBtn = document.getElementById('scoresBackBtn');
+    backBtn.textContent = this._scoresFromGame ? '← ' + I18n.t('resume') : '← ' + I18n.t('back');
+    this.renderScores(this.scoresCurrentMode);
+  },
+
+  backFromScores() {
+    document.getElementById('scoresScreen').classList.add('hidden');
+    if (this._scoresFromGame) {
+      document.getElementById('gameArea').classList.remove('hidden');
+    } else {
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+    }
+  },
+
+  scoresTab(mode) {
+    this.scoresCurrentMode = mode;
+    document.querySelectorAll('.scores-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+    this.renderScores(mode);
+  },
+
+  renderScores(mode) {
+    const list = document.getElementById('scoresList');
+    const data = Scores.getMode(mode);
+    if (!data.length) {
+      list.innerHTML = `<div class="no-scores">${I18n.t('noScores')}</div>`;
+      return;
+    }
+    const rankClass = ['gold', 'silver', 'bronze'];
+    const rankEmoji = ['🥇', '🥈', '🥉'];
+    list.innerHTML = data.map((s, i) => `
+      <div class="score-row">
+        <div class="rank ${rankClass[i] || ''}">${rankEmoji[i] || (i + 1)}</div>
+        <div><span class="level-badge">${I18n.t('lvl')} ${s.level}</span></div>
+        <div class="score-val">${s.score}</div>
+        <div class="pct-val">${s.pct}%</div>
+      </div>
+    `).join('');
+  },
+
+  updateHUD() {
+    document.getElementById('hudLevel').textContent = State.level;
+    document.getElementById('hudScore').textContent = State.score.toLocaleString();
+    document.getElementById('hudCapture').textContent = State.capturedPct + '%';
+    UI.drawPie(State.capturedPct);
+    document.getElementById('hudMode').textContent = I18n.t(State.mode);
+    // Timer
+    const timerEl = document.getElementById('hudTimer');
+    if (timerEl) {
+      if (State.mode === 'zen') {
+        timerEl.textContent = '∞';
+      } else {
+        const secs = Math.max(0, Math.ceil(State.timeLeft));
+        const m = Math.floor(secs / 60);
+        const s2 = secs % 60;
+        timerEl.textContent = m + ':' + String(s2).padStart(2, '0');
+      }
+    }
+
+    // Lives display — zen mode shows ∞, other modes show hearts
+    const cfg = Game.modes[State.mode];
+    const livesEl = document.getElementById('hudLives');
+    livesEl.innerHTML = '';
+    if (State.mode === 'zen') {
+      // Zen: no lives concept — show infinity symbol
+      const span = document.createElement('span');
+      span.style.cssText = 'font-size:22px; color:var(--accent); line-height:1;';
+      span.textContent = '∞';
+      livesEl.appendChild(span);
+    } else {
+      const maxL = cfg.lives;
+      // Show starting-max slots: filled ❤ or lost (faded)
+      for (let i = 0; i < maxL; i++) {
+        const span = document.createElement('span');
+        span.className = 'life-icon' + (i >= State.lives ? ' lost' : '');
+        span.textContent = '❤';
+        livesEl.appendChild(span);
+      }
+      // Show bonus lives above starting max in yellow
+      for (let i = maxL; i < State.lives; i++) {
+        const span = document.createElement('span');
+        span.className = 'life-icon';
+        span.textContent = '💛';
+        livesEl.appendChild(span);
+      }
+    }
+
+    // Progress bar
+    const pbar = document.getElementById('progressBar');
+    if (pbar) pbar.style.width = Math.min(100, State.capturedPct) + '%';
+  },
+
+  updateDirIndicator() {
+    const ind = document.getElementById('dirIndicator');
+    const arrow = ind.querySelector('.dir-arrow');
+    const label = document.getElementById('dirLabel');
+    if (State.wallDir === 'H') {
+      ind.className = 'wall-h';
+      arrow.textContent = '—';
+      label.textContent = I18n.t('horizontal');
+    } else {
+      ind.className = 'wall-v';
+      arrow.textContent = '|';
+      label.textContent = I18n.t('vertical');
+    }
+  },
+
+  selectMode(mode) {
+    this.selectedMode = mode;
+    State.mode = mode;
+    this.highlightModeBtn(mode);
+    Prefs.save();
+    Audio.click();
+  },
+
+  highlightModeBtn(mode) {
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.mode === mode);
+    });
+  },
+
+  showLevelSplash(isRecord) {
+    // Draw landscape thumbnail to splash canvas
+    const sc = document.getElementById('splashImgCanvas');
+    const sctx = sc.getContext('2d');
+    sctx.drawImage(Game.landscapeCanvas, 0, 0, Game.landscapeCanvas.width, Game.landscapeCanvas.height, 0, 0, sc.width, sc.height);
+
+    const maxLives = Game.modes[State.mode].lives;
+    document.getElementById('splashTitle').textContent = I18n.t('levelComplete');
+    document.getElementById('splashSub').textContent = I18n.t('levelCompleteSub', { pct: State.capturedPct });
+    document.getElementById('splashPct').textContent = State.capturedPct + '%';
+    document.getElementById('splashScore').textContent = State.score.toLocaleString();
+    const remSecs = Math.max(0, Math.ceil(State.timeLeft));
+    const remM = Math.floor(remSecs / 60);
+    const remS = remSecs % 60;
+    document.getElementById('splashTime').textContent = remM + ':' + String(remS).padStart(2, '0');
+    if (State.mode === 'zen') {
+      document.getElementById('splashLives').textContent = '∞';
+    } else {
+      const livesShown = isFinite(State.lives) ? State.lives : 0;
+      document.getElementById('splashLives').textContent =
+        '❤'.repeat(Math.min(livesShown, maxLives)) +
+        (livesShown > maxLives ? ' 💛×' + (livesShown - maxLives) : '');
+    }
+    document.getElementById('splashRecord').classList.toggle('hidden', !isRecord);
+    // Update lives display with ♥ icons (bonus lives shown in yellow)
+    const livesEl = document.getElementById('hudLives');
+    if (livesEl) {
+      livesEl.innerHTML = '';
+      for (let i = 0; i < State.lives; i++) {
+        const s = document.createElement('span');
+        s.className = 'life-icon';
+        s.textContent = i < maxLives ? '❤' : '💛';  // yellow = bonus life
+        livesEl.appendChild(s);
+      }
+    }
+
+    const overlay = document.getElementById('levelSplash');
+    overlay.classList.remove('hidden');
+
+    if (State.animOn) {
+      // Size confetti canvas to game area
+      Confetti.burst(document.getElementById('confettiCanvas'), true);
+    }
+  },
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+  },
+
+  // Cycle through themes in order
+  _themes: ['dark', 'light', 'sunset', 'forest', 'ocean'],
+  cycleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const idx = this._themes.indexOf(current);
+    const next = this._themes[(idx + 1) % this._themes.length];
+    this.applyTheme(next);
+    Prefs.save();
+    Audio.click();
+  },
+
+  toggleSound() {
+    State.soundOn = !State.soundOn;
+    const btn = document.getElementById('soundToggleBtn');
+    if (btn) {
+      btn.textContent = State.soundOn ? '🔊' : '🔇';
+      btn.classList.toggle('muted', !State.soundOn);
+    }
+    Prefs.save();
+  },
+
+  // Download the HTML file itself — like fractales.html
+  downloadHtml() {
+    try {
+      const html = document.documentElement.outerHTML;
+      const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'fabsjezz.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      UI.toast(I18n.t('downloadedTitle'), 'success');
+    } catch(e) {
+      UI.toast('Use Ctrl+S to save', 'warn');
+    }
+  },
+
+  drawPie(pct) {
+    const canvas = document.getElementById('pieCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2, r = W / 2 - 2;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 75% target marker (dashed arc)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * 0.75);
+    ctx.strokeStyle = 'rgba(255,217,61,0.35)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (pct > 0) {
+      // Filled sector
+      const style = getComputedStyle(document.documentElement);
+      const accent = style.getPropertyValue('--accent').trim() || '#00d4aa';
+      const accent2 = style.getPropertyValue('--accent3').trim() || '#ffd93d';
+      const angle = Math.PI * 2 * (pct / 100);
+      const grad = ctx.createConicGradient(-Math.PI / 2, cx, cy);
+      grad.addColorStop(0, accent);
+      grad.addColorStop(Math.min(1, pct / 100), pct >= 75 ? accent2 : accent);
+      grad.addColorStop(1, accent);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r - 1, -Math.PI / 2, -Math.PI / 2 + angle);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // Inner white circle (donut hole)
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.52, 0, Math.PI * 2);
+    ctx.fillStyle = 'var(--panel)';
+    ctx.fill();
+  },
+
+  toast(msg, type = '') {
+    const t = document.createElement('div');
+    t.className = 'toast' + (type ? ' ' + type : '');
+    t.textContent = msg;
+    document.getElementById('toastContainer').appendChild(t);
+    setTimeout(() => t.remove(), 2100);
+  },
+
+  shakeCanvas() {
+    const cw = document.getElementById('canvasWrap');
+    cw.classList.add('shake');
+    setTimeout(() => cw.classList.remove('shake'), 500);
+  }
+};
+
+// ============================================================
+// BOOT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  UI.init();
+  // btnPause lives inside #hud which is hidden on welcome
+  document.body.classList.add('at-welcome');
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (State.running || State.paused) Game.togglePause();
+    }
+    // P key also pauses
+    if (e.key === 'p' || e.key === 'P') {
+      if (State.running || State.paused) Game.togglePause();
+    }
+  });
+  // Touch device detection
+  const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  const dirHint = document.getElementById('dirHint');
+  if (dirHint && isTouchDevice) {
+    dirHint.setAttribute('data-i18n', 'longPressSwitch');
+  }
+  I18n.apply();
+});
+</script>
+<!-- CONFETTI CANVAS — fixed over entire viewport -->
+<canvas id="confettiCanvas"></canvas>
+</body>
+</html>
