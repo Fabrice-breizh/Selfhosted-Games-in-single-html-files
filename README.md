@@ -4,11 +4,23 @@
 
 ## The games
 
-| Game | Description |
-|------|-------------|
-| [**Sudoku**](Sudoku/) | The classic number puzzle. Multilingual, with hints, several difficulty levels and print facilities to play on paper. |
-| [**Binairo**](Binairo/) | Fill the grid with 0s and 1s following simple logic rules. Multilingual, with a level selector and a printable grid generator. |
-| [**FabJezz**](FabJezz/) | A simple Jezzball-like arcade game: build walls to trap the bouncing balls and capture as much space as possible. |
+### [Sudoku](Sudoku/)
+
+The classic number puzzle, multilingual. Play in **Arcade** (errors cost lives), **Zen** or **Time Attack** mode, on three difficulty levels, with hints, notes, auto-notes and keyboard shortcuts. The **Print** mode generates grids to play on paper.
+
+<img src="screenshots/sudoku.png" alt="Sudoku screenshot" width="600">
+
+### [Binairo](Binairo/)
+
+Also known as Takuzu: fill the grid with 0s and 1s following simple logic rules. Multilingual, with Arcade, Zen, Time Attack and Print modes, and four grid sizes from 6×6 to 12×12.
+
+<img src="screenshots/binairo.png" alt="Binairo screenshot" width="600">
+
+### [FabJezz](FabJezz/)
+
+A Jezzball-like arcade game: draw walls to trap the bouncing balls and capture 75% of the field to reach the next level. Four modes, from a relaxed Zen mode to Hard with five fast balls.
+
+<img src="screenshots/fabjezz.png" alt="FabJezz screenshot" width="340">
 
 ## How to play
 
