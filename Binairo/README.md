@@ -1,48 +1,59 @@
-# BINAIRO / TAKUZU
+# Binairo / Takuzu
 
-A standalone Binairo / Takuzu game built with HTML, CSS and JavaScript. It works offline, has no external dependencies, and runs on both desktop and mobile devices.
+**A complete Binairo game in a single HTML file.** No installation, no internet connection, no dependencies: open `binairo.html` in your browser, or copy it to your web server, and play.
 
-## Features
+<img src="../screenshots/binairo.png" alt="Binairo screenshot" width="700">
 
-- Arcade, Zen, Chrono and Print modes.
-- 6x6, 8x8, 10x10 and 12x12 difficulty grids.
-- Responsive interface aligned with the Sudoku game from the same collection.
-- Visual themes: Classic, Sakura, Matcha, Fuji and Dark.
-- Internationalization: English, Chinese, Hindi, Spanish, French and Japanese.
-- Built-in sounds with a persistent mute button.
-- Keyboard navigation: arrow keys, 0/1, Delete, H, Space and Escape.
-- Current-game saving and resume button.
-- Printable A4 puzzle sheets, 6 grids per page.
+## Rules
+
+1. Fill the grid with **0s and 1s**.
+2. Each row and each column contains **as many 0s as 1s**.
+3. **Never more than two** identical digits next to each other.
+4. All rows are **unique**, and so are all columns.
+
+## Game modes
+
+| Mode | How it plays |
+|------|--------------|
+| 🎮 **Arcade** | The classic game: errors cost lives, hints add time. |
+| 🧘 **Zen** | No pressure: infinite lives and hints. |
+| ⏱️ **Time Attack** | Race against the clock: hints cost time. |
+| 🖨️ **Print** | Generates ready-to-print A4 sheets, 6 puzzles per page. |
+
+Four grid sizes: **Easy 6×6**, **Medium 8×8**, **Hard 10×10** and **Expert 12×12**.
 
 ## Keyboard shortcuts
 
 | Key | Action |
-| --- | --- |
+|-----|--------|
 | Arrow keys | Move around the grid |
-| 0 / 1 | Fill the selected cell |
-| Delete / Backspace | Clear the selected cell |
-| H | Request a hint |
-| Space | Pause / resume |
-| Escape | Quit or close a modal |
+| `0` / `1` | Fill the selected cell |
+| `Delete` / `Backspace` | Clear the selected cell |
+| `H` | Get a hint |
+| `Space` | Pause / resume |
+| `Esc` | Quit, or close a window |
 
-## GitHub Pages publishing
+## Features
 
-The game is contained in `binairo.html`. To publish it with GitHub Pages:
+- **Best times** are kept, and an unfinished game can be resumed later.
+- **5 visual themes**: Classic, Sakura, Matcha, Fuji and Dark.
+- **6 languages**: English, Français, Español, 中文, हिन्दी, 日本語.
+- Sound effects that you can switch off.
+- Works on **desktop and mobile**.
 
-1. Copy `binairo.html`, `README.md`, `LICENSE` and `preview.png` into the repository.
-2. Rename `binairo.html` to `index.html` if the game should be the home page.
-3. Enable GitHub Pages from the repository settings.
+## Installation
 
-## Development
+1. Download [`binairo.html`](binairo.html) (click the file, then the **Download raw file** button).
+2. Double-click it: it opens in your web browser. That's it!
 
-The file is intentionally monolithic so it remains easy to download, share and use offline. Before publishing, check the JavaScript syntax:
+To host it, copy the file to any folder served by your web server (Apache, Nginx, a NAS, a Raspberry Pi…). No database or server-side code is needed.
 
-```bash
-node --check binairo_check.js
-```
+Your scores and settings are stored in your browser only: nothing is sent anywhere.
 
-To validate the full HTML file, extract the `<script>` block into a temporary JavaScript file or use an HTML validator.
+## Other games
+
+Binairo is part of [Selfhosted Games in single HTML files](../), with [Sudoku](../Sudoku/) and [FabJezz](../FabJezz/).
 
 ## License
 
-MIT. See `LICENSE`.
+Released under the [MIT License](../LICENSE).
