@@ -4,6 +4,10 @@
 
 <img src="../screenshots/fabjezz.png" alt="Fab's Jezz screenshot" width="400">
 
+## Play online
+
+▶ **[Play Fab's Jezz online](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/FabJezz/fabsjezz.html)**, right in your browser.
+
 ## How to play
 
 1. **Click** on the field to draw a wall.
