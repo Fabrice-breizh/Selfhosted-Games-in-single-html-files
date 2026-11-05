@@ -4,6 +4,10 @@
 
 <img src="../screenshots/sudoku.png" alt="Sudoku screenshot" width="700">
 
+## Play online
+
+▶ **[Play Sudoku online](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/Sudoku/sudoku.html)**, right in your browser.
+
 ## Game modes
 
 | Mode | How it plays |
