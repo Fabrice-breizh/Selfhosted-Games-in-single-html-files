@@ -4,6 +4,8 @@
 
 ## The games
 
+▶ Play online: [Sudoku](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/Sudoku/sudoku.html) · [Binairo](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/Binairo/binairo.html) · [Fab's Jezz](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/FabJezz/fabsjezz.html)
+
 ### [Sudoku](Sudoku/)
 
 The classic number puzzle, multilingual. Play in **Arcade** (errors cost lives), **Zen** or **Time Attack** mode, on three difficulty levels, with hints, notes, auto-notes and keyboard shortcuts. The **Print** mode generates grids to play on paper.
