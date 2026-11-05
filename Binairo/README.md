@@ -4,6 +4,10 @@
 
 <img src="../screenshots/binairo.png" alt="Binairo screenshot" width="700">
 
+## Play online
+
+▶ **[Play Binairo online](https://fabrice-breizh.github.io/Selfhosted-Games-in-single-html-files/Binairo/binairo.html)**, right in your browser.
+
 ## Rules
 
 1. Fill the grid with **0s and 1s**.
